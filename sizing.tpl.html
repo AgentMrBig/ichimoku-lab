@@ -1,0 +1,81 @@
+<title>Ichimoku — Position Structures (Triplet vs 1x9)</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22b8a6; --up:#3fb37f; --c0:#6b7785; --c1:#4c9aff; --c2:#e0a24a; --c3:#22d3bb;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --up:#1f9d63; --accent:#0f9e8e; --c0:#98a2ad; --c1:#2f6fd6; --c2:#b3781f; --c3:#0f9e8e; } }
+  :root[data-theme="dark"]{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f; --c0:#6b7785; --c1:#4c9aff; --c2:#e0a24a; --c3:#22d3bb; }
+  :root[data-theme="light"]{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --c0:#98a2ad; --c1:#2f6fd6; --c2:#b3781f; --c3:#0f9e8e; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 22px 72px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(25px,4.3vw,38px);line-height:1.1;margin:0 0 10px;letter-spacing:-.01em}
+  .sub{font-family:var(--mono);font-size:13px;color:var(--ink2);margin:0 0 4px}
+  .warn{font-family:var(--mono);font-size:12.5px;color:var(--ink2);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c2);border-radius:8px;padding:11px 14px;margin:16px 0 0;max-width:70ch}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:26px 0}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .tile .v{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tile .k{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;font-family:var(--mono)}
+  .tile .v.pos{color:var(--up)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 18px 12px}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:2px 4px 14px;font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}.swatch{width:15px;height:3px;border-radius:2px;display:inline-block}
+  svg{width:100%;height:auto;display:block;overflow:visible}
+  .gl{stroke:var(--line);stroke-width:1}.axlbl{fill:var(--ink3);font-family:var(--mono);font-size:11px}
+  .endlbl{font-family:var(--mono);font-size:12px;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:26px}
+  th{text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:9px 11px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:11px 11px;border-bottom:1px solid var(--line);font-family:var(--mono);font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  .dot{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:9px;vertical-align:middle}.pos{color:var(--up)}
+  footer{margin-top:24px;font-family:var(--mono);font-size:11.5px;color:var(--ink3);line-height:1.7}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Ichimoku Lab · position structures</p>
+    <h1>Triplet vs 1x9 — the "$4B" run</h1>
+    <p class="sub" id="sub"></p>
+    <p class="warn"><b>⚠ Uncapped theoretical.</b> These 9%-risk figures compound with no broker lot cap — the same fantasy-vs-capped story as our main system. The real, scale-invariant metric is the <b>drawdown %</b>. Absolute dollars would be throttled hard by the 100-lot-per-order cap in reality.</p>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+  <div class="card"><div class="legend" id="legend"></div>
+    <svg id="chart" viewBox="0 0 920 430" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Position-structure equity curves"></svg></div>
+  <table id="tbl"><thead><tr><th>Structure</th><th>Final (uncapped)</th><th>Max drawdown</th></tr></thead><tbody></tbody></table>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const DATA = __DATA__;
+const NS="http://www.w3.org/2000/svg", el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const usd=v=>v>=1e9?'$'+(v/1e9).toFixed(1)+'B':v>=1e6?'$'+(v/1e6).toFixed(0)+'M':'$'+Math.round(v).toLocaleString();
+const SH={'1% single':'1% single','9% single (all trail)':'9% single','Triplet 3×3% (bank 1 @2R, run 2)':'Triplet 3×3%','1x9  9×1% (bank 1 @2R, run 8)':'1x9  9×1%'};
+const COLS=['--c0','--c1','--c2','--c3']; const S=DATA.sizing.map((s,i)=>({...s,c:COLS[i],short:SH[s.name]||s.name,hero:/1x9/.test(s.name)}));
+const nine=S.find(x=>x.hero), trip=S.find(x=>/Triplet/.test(x.name));
+
+const C=DATA.pooled.stats; const eq0=S[0].equity;
+const d0=new Date(eq0[0].t*1000), d1=new Date(eq0[eq0.length-1].t*1000);
+const fmt=d=>d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+document.getElementById('sub').textContent=`Daily→H4 Ichimoku · ${fmt(d0)} → ${fmt(d1)} · ${C.n} trades · ${C.win}% win · PF ${C.pf} · $1,000 start · 9% total risk`;
+const tiles=[['1x9 final',usd(nine.final),true],['1x9 max DD',nine.maxDD+'%',false],['Triplet final',usd(trip.final),true],['Triplet max DD',trip.maxDD+'%',false],['Win rate',C.win+'%',C.win>=45],['Profit factor',C.pf,true]];
+document.getElementById('tiles').innerHTML=tiles.map(([k,v,p])=>`<div class="tile"><div class="v ${p?'pos':''}">${v}</div><div class="k">${k}</div></div>`).join('');
+document.getElementById('legend').innerHTML=S.map(s=>`<span><i class="swatch" style="background:var(${s.c});height:${s.hero?4:3}px"></i>${s.short} → ${usd(s.final)}</span>`).join('');
+
+const W=920,H=430,mL=54,mR=80,mT=16,mB=34, svg=document.getElementById('chart');
+let tMin=1/0,tMax=0,bMax=0; for(const s of S)for(const p of s.equity){ if(p.t<tMin)tMin=p.t; if(p.t>tMax)tMax=p.t; if(p.b>bMax)bMax=p.b; }
+const lo=Math.log10(1000), hi=Math.log10(bMax*1.15);
+const X=t=>mL+(t-tMin)/(tMax-tMin)*(W-mL-mR), Y=b=>mT+(1-(Math.log10(Math.max(b,1000))-lo)/(hi-lo))*(H-mT-mB);
+for(let e=3;e<=10;e++)for(const m of[1]){const v=Math.pow(10,e); if(v<1000||v>bMax*1.2)continue; svg.appendChild(el('line',{class:'gl',x1:mL,y1:Y(v),x2:W-mR,y2:Y(v)})); const tx=el('text',{class:'axlbl',x:mL-8,y:Y(v)+3,'text-anchor':'end'});tx.textContent=usd(v);svg.appendChild(tx);}
+const months=(d1.getFullYear()-d0.getFullYear())*12+(d1.getMonth()-d0.getMonth());
+for(let m=0;m<=months;m+=4){const d=new Date(d0.getFullYear(),d0.getMonth()+m,1),t=d.getTime()/1000; if(t<tMin||t>tMax)continue; const tx=el('text',{class:'axlbl',x:X(t),y:H-12,'text-anchor':'middle'});tx.textContent=d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});svg.appendChild(tx);}
+for(const s of S.slice().sort((a,b)=>(a.hero?1:0)-(b.hero?1:0))){ let dp=''; s.equity.forEach((p,i)=>{dp+=(i?'L':'M')+X(p.t).toFixed(1)+' '+Y(p.b).toFixed(1)+' ';});
+  svg.appendChild(el('path',{d:dp,fill:'none',stroke:cv(s.c),'stroke-width':s.hero?3:2,'stroke-linejoin':'round','stroke-opacity':s.hero?1:.85}));
+  const last=s.equity[s.equity.length-1]; svg.appendChild(el('circle',{cx:X(last.t),cy:Y(last.b),r:s.hero?4:3,fill:cv(s.c)}));
+  const lb=el('text',{class:'endlbl',x:X(last.t)+7,y:Y(last.b)+4,fill:cv(s.c)});lb.textContent=usd(last.b);svg.appendChild(lb); }
+
+document.querySelector('#tbl tbody').innerHTML=S.map(s=>`<tr><td><span class="dot" style="background:var(${s.c})"></span>${s.short}${s.hero?' (the $4B run)':''}</td><td class="pos">${usd(s.final)}</td><td>${s.maxDD}%</td></tr>`).join('');
+document.getElementById('foot').innerHTML='All structures bank 1 unit at +2R and run the rest on the trailing Kijun (except "single"). The scale-out cuts drawdown sharply (64% → 50%). Note: <b>triplet beats 1x9 here</b> — uncapped on a small account, banking a bigger fraction (1/3 vs 1/9) smooths the ride and compounds better. 1x9 only wins once the account is big enough that the broker 100-lot cap binds (900 lots of capacity vs 300). Side-project research — uncapped theoretical, not the live system, not advice.';
+</script>

@@ -1,0 +1,79 @@
+<title>Two Systems, One Account — Fade + Trend</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22b8a6; --up:#3fb37f; --fade:#4c9aff; --trend:#e0a24a; --comb:#22d3bb;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --up:#1f9d63; --accent:#0f9e8e; --fade:#2f6fd6; --trend:#b3781f; --comb:#0f9e8e; } }
+  :root[data-theme="dark"]{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f; --fade:#4c9aff; --trend:#e0a24a; --comb:#22d3bb; }
+  :root[data-theme="light"]{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --fade:#2f6fd6; --trend:#b3781f; --comb:#0f9e8e; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 22px 72px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4.4vw,39px);line-height:1.1;margin:0 0 10px;letter-spacing:-.01em}
+  .sub{font-family:var(--mono);font-size:13px;color:var(--ink2);margin:0 0 4px}
+  .thesis{font-size:16px;color:var(--ink2);max-width:66ch;margin:14px 0 0}.thesis b{color:var(--ink)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:30px 0 26px}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .tile .v{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tile .k{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;font-family:var(--mono)}
+  .tile .v.pos{color:var(--up)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 18px 12px}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:2px 4px 14px;font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}.swatch{width:15px;height:3px;border-radius:2px;display:inline-block}
+  svg{width:100%;height:auto;display:block;overflow:visible}
+  .gl{stroke:var(--line);stroke-width:1}.axlbl{fill:var(--ink3);font-family:var(--mono);font-size:11px}
+  .endlbl{font-family:var(--mono);font-size:12.5px;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:26px}
+  th{text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:500;padding:9px 11px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:11px 11px;border-bottom:1px solid var(--line);font-family:var(--mono);font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none;font-weight:600}
+  .dot{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:9px;vertical-align:middle}.pos{color:var(--up)}
+  footer{margin-top:24px;font-family:var(--mono);font-size:11.5px;color:var(--ink3);line-height:1.7}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Ichimoku Lab · portfolio experiment</p>
+    <h1>Two Systems, One Account — Fade + Trend</h1>
+    <p class="sub" id="sub"></p>
+    <p class="thesis">Our live <b>fade</b> system profits on ranges; the Ichimoku <b>trend</b> system profits on trends — <b>opposites</b>. Run on one $1,000 account (1% risk/trade each), their drawdowns land on <b>different days</b>, so together the ride is far smoother than either alone. Log scale.</p>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+  <div class="card"><div class="legend" id="legend"></div>
+    <svg id="chart" viewBox="0 0 920 430" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Combined equity curves"></svg></div>
+  <table id="tbl"><thead><tr><th>System</th><th>Trades</th><th>Win %</th><th>Return</th><th>Max DD</th><th>Return / DD</th><th>Green mo.</th></tr></thead><tbody></tbody></table>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const DATA = __DATA__;
+const NS="http://www.w3.org/2000/svg", el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const usd=v=>'$'+Math.round(v).toLocaleString('en-US');
+const SERIES=[{key:'fade',name:'Fade (current)',c:'--fade'},{key:'trend',name:'Trend (Ichimoku)',c:'--trend'},{key:'comb',name:'Combined',c:'--comb',hero:true,src:'combined'}];
+SERIES.forEach(s=>s.o=DATA[s.src||s.key]);
+
+const C=DATA.combined, d0=new Date(C.eq[0].t*1000), d1=new Date(C.eq[C.eq.length-1].t*1000);
+const fmt=d=>d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+document.getElementById('sub').textContent=`${fmt(d0)} → ${fmt(d1)}  ·  1% risk / trade  ·  ${C.n} trades combined`;
+const tiles=[['Combined return','+'+C.ret.toLocaleString()+'%',true],['Combined max DD',C.maxDD+'%',false],['Green months',C.greenMonths+'/'+C.totMonths,true],['Return / drawdown',C.mar.toLocaleString(),true],['Fade DD',DATA.fade.maxDD+'%',false],['Trend DD',DATA.trend.maxDD+'%',false]];
+document.getElementById('tiles').innerHTML=tiles.map(([k,v,p])=>`<div class="tile"><div class="v ${p?'pos':''}">${v}</div><div class="k">${k}</div></div>`).join('');
+document.getElementById('legend').innerHTML=SERIES.map(s=>`<span><i class="swatch" style="background:var(${s.c});height:${s.hero?4:3}px"></i>${s.name} → ${usd(s.o.final)}</span>`).join('');
+
+const W=920,H=430,mL=54,mR=76,mT=16,mB=34, svg=document.getElementById('chart');
+let tMin=1/0,tMax=0,bMax=0; for(const s of SERIES){ for(const p of s.o.eq){ if(p.t<tMin)tMin=p.t; if(p.t>tMax)tMax=p.t; if(p.b>bMax)bMax=p.b; } }
+const lo=Math.log10(1000), hi=Math.log10(bMax*1.1);
+const X=t=>mL+(t-tMin)/(tMax-tMin)*(W-mL-mR), Y=b=>mT+(1-(Math.log10(b)-lo)/(hi-lo))*(H-mT-mB);
+for(let e=3;e<=6;e++)for(const m of[1,3]){const v=m*Math.pow(10,e); if(v<1000||v>bMax*1.1)continue; svg.appendChild(el('line',{class:'gl',x1:mL,y1:Y(v),x2:W-mR,y2:Y(v)})); const tx=el('text',{class:'axlbl',x:mL-8,y:Y(v)+3,'text-anchor':'end'});tx.textContent=usd(v);svg.appendChild(tx);}
+const months=(d1.getFullYear()-d0.getFullYear())*12+(d1.getMonth()-d0.getMonth());
+for(let m=0;m<=months;m+=4){const d=new Date(d0.getFullYear(),d0.getMonth()+m,1),t=d.getTime()/1000; if(t<tMin||t>tMax)continue; const tx=el('text',{class:'axlbl',x:X(t),y:H-12,'text-anchor':'middle'});tx.textContent=d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});svg.appendChild(tx);}
+for(const s of SERIES.slice().sort((a,b)=>(a.hero?1:0)-(b.hero?1:0))){ let dp=''; s.o.eq.forEach((p,i)=>{dp+=(i?'L':'M')+X(p.t).toFixed(1)+' '+Y(p.b).toFixed(1)+' ';});
+  svg.appendChild(el('path',{d:dp,fill:'none',stroke:cv(s.c),'stroke-width':s.hero?3:2,'stroke-linejoin':'round','stroke-opacity':s.hero?1:.9}));
+  const last=s.o.eq[s.o.eq.length-1]; svg.appendChild(el('circle',{cx:X(last.t),cy:Y(last.b),r:s.hero?4:3,fill:cv(s.c)}));
+  const lb=el('text',{class:'endlbl',x:X(last.t)+7,y:Y(last.b)+4,fill:cv(s.c)});lb.textContent=usd(last.b);svg.appendChild(lb); }
+
+document.querySelector('#tbl tbody').innerHTML=SERIES.map(s=>{const o=s.o;return `<tr><td><span class="dot" style="background:var(${s.c})"></span>${s.name}</td><td>${o.n}</td><td>${o.win}%</td><td class="pos">+${o.ret.toLocaleString()}%</td><td>${o.maxDD}%</td><td class="pos">${o.mar.toLocaleString()}</td><td>${o.greenMonths}/${o.totMonths}</td></tr>`;}).join('');
+document.getElementById('foot').innerHTML='The win: combined max drawdown ('+C.maxDD+'%) sits barely above each system alone (~10%) and far below their sum ('+(DATA.fade.maxDD+DATA.trend.maxDD).toFixed(1)+'%) — the drawdowns don\'t coincide. &nbsp;·&nbsp; Illustrative: two separate backtests (fade = M15 reversal signals, trend = Daily→H4 Ichimoku), both somewhat optimistic; the relative diversification benefit is the robust takeaway, not the absolute return. Dukascopy data, spread charged, no look-ahead. Side-project research — not the live system, not advice.';
+</script>
