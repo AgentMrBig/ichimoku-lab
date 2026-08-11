@@ -15,9 +15,12 @@
   .toggle button{background:var(--surface);color:var(--ink2);border:0;padding:8px 13px;cursor:pointer}
   .toggle button.on{background:var(--surface2);color:var(--accent)}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:16px}
-  .tile{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 13px}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 13px;min-width:0}
   .tile .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 0 5px}
-  .tile .v{font-family:var(--disp);font-size:clamp(17px,2.4vw,22px);font-weight:600;letter-spacing:-.01em;line-height:1}
+  .tile .v{font-family:var(--disp);font-size:clamp(17px,2.4vw,22px);font-weight:600;letter-spacing:-.015em;line-height:1.02;font-variant-numeric:tabular-nums;white-space:nowrap;max-width:100%}
+  .tile .v.fit{font-size:clamp(14px,2vw,18px)}
+  .tile .vsub{font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-top:5px;line-height:1}
+  .tile .vsub b{color:var(--accent);font-weight:600}
   .tile .v.pos{color:var(--up)} .tile .v.neg{color:var(--down)} .tile .v.tealed{color:var(--accent)}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 12px 8px;position:relative}
   .chartwrap{position:relative}
@@ -71,17 +74,18 @@
   const greenS = green+'/'+mk.length;
 
   // ---- stat tiles ----
+  const mult = Math.round(D.final/D.start);   // 16,898x
   const tiles=[
-    ['start', full(D.start), ''],
-    ['final balance', money(D.final), 'tealed'],
-    ['return', '+'+D.retPct.toLocaleString()+'%', 'pos'],
-    ['max drawdown', '-'+D.maxDD+'%', 'neg'],
-    ['lowest ever', full(D.lowest), ''],
-    ['green months', greenS, 'pos'],
-    ['trades', D.trades.toLocaleString(), ''],
+    ['start', full(D.start), '', ''],
+    ['final balance', money(D.final), 'tealed', ''],
+    ['return', '+'+D.retPct.toLocaleString()+'%', 'pos fit', `<b>${mult.toLocaleString()}×</b> your money`],
+    ['max drawdown', '-'+D.maxDD+'%', 'neg', ''],
+    ['lowest ever', full(D.lowest), '', ''],
+    ['green months', greenS, 'pos', ''],
+    ['trades', D.trades.toLocaleString(), '', ''],
   ];
-  document.getElementById('tiles').innerHTML = tiles.map(([k,v,c])=>
-    `<div class="tile"><p class="k">${k}</p><div class="v ${c}">${v}</div></div>`).join('');
+  document.getElementById('tiles').innerHTML = tiles.map(([k,v,c,sub])=>
+    `<div class="tile"><p class="k">${k}</p><div class="v ${c}">${v}</div>${sub?`<div class="vsub">${sub}</div>`:''}</div>`).join('');
   document.getElementById('sub').textContent =
     `${D.nFade.toLocaleString()} fade + ${D.nIchi.toLocaleString()} trend signals · ${D.from} → ${D.to} · discrete 0.01 lots, 100-lot cap`;
   document.getElementById('note').innerHTML =
