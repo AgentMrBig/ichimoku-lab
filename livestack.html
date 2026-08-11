@@ -1,0 +1,191 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Stack — Equity</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --accent2:#2dd4a7; --up:#3fb37f; --down:#e5687a; --grid:#212a35;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --accent2:#0f9e8e; --up:#1f9d63; --down:#c94c60; --grid:#e7edf3; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding:20px 20px 34px;max-width:1000px;margin:0 auto}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(21px,3.4vw,28px);margin:0;letter-spacing:-.01em}
+  .sub{font-family:var(--mono);font-size:12.5px;color:var(--ink2);margin:5px 0 0}
+  .toggle{display:flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-family:var(--mono);font-size:12px}
+  .toggle button{background:var(--surface);color:var(--ink2);border:0;padding:8px 13px;cursor:pointer}
+  .toggle button.on{background:var(--surface2);color:var(--accent)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:16px}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 13px}
+  .tile .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 0 5px}
+  .tile .v{font-family:var(--disp);font-size:clamp(17px,2.4vw,22px);font-weight:600;letter-spacing:-.01em;line-height:1}
+  .tile .v.pos{color:var(--up)} .tile .v.neg{color:var(--down)} .tile .v.tealed{color:var(--accent)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 12px 8px;position:relative}
+  .chartwrap{position:relative}
+  svg{display:block;width:100%;height:auto;touch-action:none}
+  text{font-family:var(--mono)}
+  .tip{position:absolute;pointer-events:none;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:var(--mono);font-size:11.5px;color:var(--ink);opacity:0;transition:opacity .08s;white-space:nowrap;z-index:5;box-shadow:0 6px 20px rgba(0,0,0,.28)}
+  .tip b{color:var(--accent);font-weight:600} .tip .d{color:var(--ink3)} .tip .dn{color:var(--down)}
+  .panlbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:14px 0 2px 4px}
+  .note{font-family:var(--mono);font-size:11px;color:var(--ink3);margin:12px 2px 0;line-height:1.5}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;color:var(--ink2);margin:2px 2px 10px}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+</style></head><body>
+  <div class="head">
+    <div>
+      <p class="eyebrow">the live v11 stack · one account · backtest</p>
+      <h1>$2,000 → $33.8M</h1>
+      <p class="sub" id="sub">Ichimoku trend + Fade 1x9 short-term · discrete lots · 100-lot cap</p>
+    </div>
+    <div class="toggle" id="scaleToggle">
+      <button data-s="log" class="on">log</button>
+      <button data-s="lin">linear</button>
+    </div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="card">
+    <div class="legend"><span><i style="background:var(--accent)"></i>account equity</span><span><i style="background:var(--down)"></i>drawdown (underwater)</span></div>
+    <div class="chartwrap">
+      <svg id="eq" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-label="equity curve"></svg>
+      <div class="panlbl">drawdown from peak</div>
+      <svg id="dd" viewBox="0 0 1000 130" preserveAspectRatio="none" aria-label="drawdown"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+    <p class="note" id="note"></p>
+  </div>
+
+<script src="livestack-data.js"></script>
+<script>
+(function(){
+  const D = window.LIVESTACK, C = D.curve;
+  const money = v => v>=1e6 ? '$'+(v/1e6).toFixed(v>=1e7?1:2)+'M' : v>=1e3 ? '$'+(v/1e3).toFixed(0)+'k' : '$'+Math.round(v);
+  const full = v => '$'+Math.round(v).toLocaleString();
+  const dateS = t => new Date(t*1000).toISOString().slice(0,10);
+
+  // ---- green months from the curve ----
+  const byMo = {};
+  for(const p of C){ const m=new Date(p.t*1000).toISOString().slice(0,7); (byMo[m]=byMo[m]||[]).push(p.b); }
+  const mk=Object.keys(byMo).sort(); let green=0; let prevEnd=D.start;
+  for(const m of mk){ const arr=byMo[m]; const end=arr[arr.length-1]; if(end>prevEnd) green++; prevEnd=end; }
+  const greenS = green+'/'+mk.length;
+
+  // ---- stat tiles ----
+  const tiles=[
+    ['start', full(D.start), ''],
+    ['final balance', money(D.final), 'tealed'],
+    ['return', '+'+D.retPct.toLocaleString()+'%', 'pos'],
+    ['max drawdown', '-'+D.maxDD+'%', 'neg'],
+    ['lowest ever', full(D.lowest), ''],
+    ['green months', greenS, 'pos'],
+    ['trades', D.trades.toLocaleString(), ''],
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(([k,v,c])=>
+    `<div class="tile"><p class="k">${k}</p><div class="v ${c}">${v}</div></div>`).join('');
+  document.getElementById('sub').textContent =
+    `${D.nFade.toLocaleString()} fade + ${D.nIchi.toLocaleString()} trend signals · ${D.from} → ${D.to} · discrete 0.01 lots, 100-lot cap`;
+  document.getElementById('note').innerHTML =
+    `Backtest on Dukascopy 1-min data, 2023–2025. Risk is 1%/unit of the <b>current</b> balance (fade = 9 units), so it compounds — ` +
+    `${D.capped.toLocaleString()} signals hit the 100-lot broker cap, which is what bounds the curve. Slippage/liquidity at eight-figure size not charged. ` +
+    `Log scale shows the compounding honestly; the drawdown panel is the real risk you'd sit through. Not the demo's realized P&L — a projection if the edge holds.`;
+
+  // ---- geometry ----
+  const W=1000, EH=400, DH=130, PL=64, PR=64, PT=14, PB=22;
+  const t0=C[0].t, t1=C[C.length-1].t;
+  const times=C.map(p=>p.t);
+  const X = t => PL + (t-t0)/(t1-t0) * (W-PL-PR);
+  const bMin=D.lowest*0.94, bMax=D.final*1.12;
+  let mode='log';
+  const yLog = b => { const lo=Math.log10(bMin), hi=Math.log10(bMax); return PT + (1-(Math.log10(Math.max(b,1))-lo)/(hi-lo))*(EH-PT-PB); };
+  const yLin = b => PT + (1-(b-bMin)/(bMax-bMin))*(EH-PT-PB);
+  const Y = b => mode==='log' ? yLog(b) : yLin(b);
+  const ddMin = Math.min(...C.map(p=>p.dd));           // most negative
+  const yDD = d => 8 + (-d/ -ddMin) * (DH-8-18);       // 0 at top, ddMin at bottom
+
+  const eq=document.getElementById('eq'), dd=document.getElementById('dd'), tip=document.getElementById('tip');
+  const NS='http://www.w3.org/2000/svg';
+  const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+  function draw(){
+    eq.innerHTML=''; dd.innerHTML='';
+    // --- equity gridlines + y labels ---
+    if(mode==='log'){
+      const ticks=[2000,10000,100000,1e6,1e7]; if(bMax>3e7)ticks.push(3e7);
+      for(const v of ticks){ if(v<bMin||v>bMax)continue; const y=yLog(v);
+        eq.appendChild(el('line',{x1:PL,y1:y,x2:W-PR,y2:y,stroke:'var(--grid)','stroke-width':1}));
+        eq.appendChild(el('text',{x:PL-8,y:y+3.5,'text-anchor':'end','font-size':11,fill:'var(--ink3)'})).textContent=money(v);
+      }
+    } else {
+      const n=5; for(let i=0;i<=n;i++){ const v=bMin+(bMax-bMin)*i/n; const y=yLin(v);
+        eq.appendChild(el('line',{x1:PL,y1:y,x2:W-PR,y2:y,stroke:'var(--grid)','stroke-width':1}));
+        eq.appendChild(el('text',{x:PL-8,y:y+3.5,'text-anchor':'end','font-size':11,fill:'var(--ink3)'})).textContent=money(v);
+      }
+    }
+    // --- year x labels ---
+    let yr=null;
+    for(const p of C){ const Yr=new Date(p.t*1000).getUTCFullYear(); if(Yr!==yr){ yr=Yr; const x=X(p.t);
+      eq.appendChild(el('line',{x1:x,y1:PT,x2:x,y2:EH-PB,stroke:'var(--grid)','stroke-width':1,'stroke-dasharray':'2 4'}));
+      eq.appendChild(el('text',{x:x+3,y:EH-8,'font-size':11,fill:'var(--ink3)'})).textContent=Yr;
+    }}
+    // --- equity area + line ---
+    let dLine='', dArea='';
+    for(let i=0;i<C.length;i++){ const x=X(C[i].t), y=Y(C[i].b); dLine+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; }
+    dArea = dLine + `L${X(t1).toFixed(1)} ${(EH-PB)}  L${X(t0).toFixed(1)} ${(EH-PB)} Z`;
+    const grad=el('linearGradient',{id:'g1',x1:0,y1:0,x2:0,y2:1});
+    grad.appendChild(el('stop',{offset:'0%','stop-color':'var(--accent)','stop-opacity':.28}));
+    grad.appendChild(el('stop',{offset:'100%','stop-color':'var(--accent)','stop-opacity':.02}));
+    const defs=el('defs',{}); defs.appendChild(grad); eq.appendChild(defs);
+    eq.appendChild(el('path',{d:dArea,fill:'url(#g1)'}));
+    eq.appendChild(el('path',{d:dLine,fill:'none',stroke:'var(--accent)','stroke-width':1.8,'stroke-linejoin':'round'}));
+    // final marker + label
+    const fx=X(t1), fy=Y(D.final);
+    eq.appendChild(el('circle',{cx:fx,cy:fy,r:3.4,fill:'var(--accent)'}));
+    const lbl=el('text',{x:fx-6,y:fy-8,'text-anchor':'end','font-size':13,fill:'var(--accent)','font-weight':600}); lbl.textContent=money(D.final); eq.appendChild(lbl);
+    // crosshair holders
+    eq.appendChild(el('line',{id:'cx',x1:0,y1:PT,x2:0,y2:EH-PB,stroke:'var(--ink3)','stroke-width':1,'stroke-dasharray':'3 3',opacity:0}));
+    eq.appendChild(el('circle',{id:'cd',r:3.5,fill:'var(--accent)',stroke:'var(--bg)','stroke-width':1.5,opacity:0}));
+
+    // --- drawdown panel ---
+    dd.appendChild(el('line',{x1:PL,y1:8,x2:W-PR,y2:8,stroke:'var(--grid)','stroke-width':1}));
+    dd.appendChild(el('text',{x:PL-8,y:11,'text-anchor':'end','font-size':10,fill:'var(--ink3)'})).textContent='0%';
+    dd.appendChild(el('text',{x:PL-8,y:DH-16,'text-anchor':'end','font-size':10,fill:'var(--ink3)'})).textContent=ddMin.toFixed(0)+'%';
+    let dd1='',dd2='';
+    for(let i=0;i<C.length;i++){ const x=X(C[i].t), y=yDD(C[i].dd); dd1+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' '; }
+    dd2 = dd1 + `L${X(t1).toFixed(1)} 8 L${X(t0).toFixed(1)} 8 Z`;
+    const gd=el('linearGradient',{id:'g2',x1:0,y1:0,x2:0,y2:1});
+    gd.appendChild(el('stop',{offset:'0%','stop-color':'var(--down)','stop-opacity':.05}));
+    gd.appendChild(el('stop',{offset:'100%','stop-color':'var(--down)','stop-opacity':.32}));
+    const defs2=el('defs',{}); defs2.appendChild(gd); dd.appendChild(defs2);
+    dd.appendChild(el('path',{d:dd2,fill:'url(#g2)'}));
+    dd.appendChild(el('path',{d:dd1,fill:'none',stroke:'var(--down)','stroke-width':1.2}));
+    dd.appendChild(el('line',{id:'cx2',x1:0,y1:8,x2:0,y2:DH-16,stroke:'var(--ink3)','stroke-width':1,'stroke-dasharray':'3 3',opacity:0}));
+  }
+  draw();
+
+  // ---- interaction ----
+  const wrap=eq.parentNode;
+  function bisect(t){ let lo=0,hi=times.length-1; while(lo<hi){const m=(lo+hi)>>1; if(times[m]<t)lo=m+1;else hi=m;} return lo; }
+  function move(e){
+    const r=eq.getBoundingClientRect(); const px=(e.clientX-r.left)/r.width*W;
+    if(px<PL||px>W-PR){ hide(); return; }
+    const t = t0 + (px-PL)/(W-PL-PR)*(t1-t0); const i=bisect(t); const p=C[i]; if(!p)return;
+    const x=X(p.t), y=Y(p.b);
+    eq.querySelector('#cx').setAttribute('x1',x); eq.querySelector('#cx').setAttribute('x2',x); eq.querySelector('#cx').setAttribute('opacity',1);
+    const cd=eq.querySelector('#cd'); cd.setAttribute('cx',x); cd.setAttribute('cy',y); cd.setAttribute('opacity',1);
+    const c2=dd.querySelector('#cx2'); c2.setAttribute('x1',x); c2.setAttribute('x2',x); c2.setAttribute('opacity',1);
+    tip.innerHTML = `<b>${full(p.b)}</b><br><span class="d">${dateS(p.t)}</span> · <span class="dn">${p.dd.toFixed(1)}%</span>`;
+    tip.style.opacity=1;
+    const wr=wrap.getBoundingClientRect(); let lx=(x/W)*wr.width+12; if(lx>wr.width-140)lx-=160;
+    tip.style.left=lx+'px'; tip.style.top=(y/EH*(eq.getBoundingClientRect().height))+'px';
+  }
+  function hide(){ tip.style.opacity=0; eq.querySelector('#cx').setAttribute('opacity',0); eq.querySelector('#cd').setAttribute('opacity',0); dd.querySelector('#cx2').setAttribute('opacity',0); }
+  eq.addEventListener('mousemove',move); eq.addEventListener('mouseleave',hide);
+  eq.addEventListener('touchmove',e=>{move(e.touches[0]); e.preventDefault();},{passive:false});
+
+  document.getElementById('scaleToggle').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return; mode=b.dataset.s;
+    [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); draw();
+  });
+})();
+</script>
+</body></html>
