@@ -1,0 +1,101 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The System</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --up:#3fb37f; --warn:#e5b567; --down:#e5687a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --warn:#b07d1a; --down:#c94c60; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.55;padding:24px 20px 60px;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+  h2{font-family:var(--disp);font-weight:600;font-size:20px;margin:34px 0 12px;letter-spacing:-.01em;border-bottom:1px solid var(--line);padding-bottom:8px}
+  h3{font-size:15px;margin:0 0 4px}
+  p{color:var(--ink2);margin:0 0 12px} .lead{font-size:17px;color:var(--ink)}
+  code{font-family:var(--mono);font-size:.88em;background:var(--surface2);padding:1px 5px;border-radius:4px;color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  .card.trend .tag{color:var(--warn)} .card ul{margin:8px 0 0;padding-left:18px;color:var(--ink2);font-size:14px} .card li{margin:3px 0}
+  .flow{counter-reset:step;margin:14px 0;display:flex;flex-direction:column;gap:0}
+  .step{position:relative;padding:12px 0 12px 46px;border-left:2px solid var(--line);margin-left:15px}
+  .step:before{counter-increment:step;content:counter(step);position:absolute;left:-16px;top:10px;width:30px;height:30px;border-radius:50%;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:13px;display:flex;align-items:center;justify-content:center}
+  .step:last-child{border-left-color:transparent}
+  .step b{color:var(--ink)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)} th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:400}
+  td code{font-size:.82em} .mono{font-family:var(--mono)}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:12px 14px;font-size:13.5px;color:var(--ink2);margin:14px 0}
+  .stack{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .chip{font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 11px;color:var(--ink2)}
+  .chip b{color:var(--ink)}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+</style></head><body>
+  <p class="eyebrow">architecture · what runs, where, and how</p>
+  <h1>The System</h1>
+  <p class="lead">Two independent trading engines running on one always-on server, executing on a single MetaTrader 4 account through a custom Expert Advisor. This is the machine behind the backtest.</p>
+
+  <h2>Two engines, one account</h2>
+  <p>The edge comes from running two uncorrelated strategies side by side — a fast reversal scalper and a slow trend follower — so their equity curves smooth each other. In backtest the pair was green in 24 of 25 months.</p>
+  <div class="grid">
+    <div class="card">
+      <p class="tag">Engine 1 · short-term</p>
+      <h3>Fade 1×9</h3>
+      <p style="font-size:13.5px">Catches exhaustion reversals. A signal arms on the M15/M30 structure, then confirms on the 1-minute (9/20 MA convergence → 20-MA break → prior-swing break). Fires <b>9 units of 1% each</b> at a fixed <b>2R</b> target.</p>
+      <ul>
+        <li>Magic <code>12345</code> · 3 pairs</li>
+        <li>Trend-gated: won't fade shorts above the H1 200-MA</li>
+        <li>Backtest edge: 59% win · PF 2.43</li>
+      </ul>
+    </div>
+    <div class="card trend">
+      <p class="tag">Engine 2 · trend</p>
+      <h3>Ichimoku (MTF)</h3>
+      <p style="font-size:13.5px">Rides multi-day trends. Daily-bias filter (cloud + Tenkan/Kijun) sets direction; entry on an <b>H4 Tenkan pullback</b>; exit trails the <b>H4 Kijun</b> with a breakeven lock once up +2R.</p>
+      <ul>
+        <li>Magic <code>12347</code> · gold + EUR + JPY</li>
+        <li><b>Singles at 1%</b> (the gold "triplet" was tested and dropped)</li>
+        <li>Backtest edge: 39% win · PF 1.34 · the diversifier</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:13.5px">A third, dormant component — the <b>NFP grabber</b> (magic <code>12346</code>) — arms an OCO straddle around high-impact news releases and otherwise sleeps.</p>
+
+  <h2>How a trade actually happens</h2>
+  <p>The strategy logic lives in Node.js "bridges"; MetaTrader is just the hands that place orders. They talk through files on disk.</p>
+  <div class="flow">
+    <div class="step"><b>MT4 + EA log the ticks.</b> VisionBridgeEA_v11, attached to the 3 charts, writes every tick to <code>ticks_&lt;SYMBOL&gt;.csv</code> in MT4's Files folder.</div>
+    <div class="step"><b>A bridge reads the ticks</b> and rebuilds the candles it needs (the Ichimoku bridge also splices in backfilled M15 history so it has enough bars from the first second).</div>
+    <div class="step"><b>The bridge computes a signal</b> — reversal confluence for the fade, daily-bias + pullback for Ichimoku — and applies its gates (trend filter, per-pair cooldown, one-position rule).</div>
+    <div class="step"><b>It writes an order file</b> (<code>orders_&lt;SYMBOL&gt;.json</code>) with side, stop, risk %, and units — and pings Discord.</div>
+    <div class="step"><b>The EA executes it</b> next tick: sizes the lots off the live balance, opens the position(s) with the right magic number.</div>
+    <div class="step"><b>The EA manages the position</b> — trails the Kijun, locks breakeven at +2R, banks/runs — all keyed by magic number, independent of the bridges.</div>
+  </div>
+  <p style="font-size:13.5px">Because risk is a percent of the <em>current</em> balance, wins compound — which is where the backtest's steep curve comes from.</p>
+
+  <h2>The stack</h2>
+  <p>Everything lives on one small always-on Linux VPS so trades never miss when the home PC is off. MetaTrader (a Windows app) runs under Wine; the bridges run natively.</p>
+  <div class="stack">
+    <span class="chip"><b>Hostinger KVM</b> · Ubuntu 24.04</span>
+    <span class="chip"><b>Wine 9</b> · MT4 portable</span>
+    <span class="chip"><b>VisionBridgeEA_v11</b> · the EA</span>
+    <span class="chip"><b>Node.js</b> · the two bridges</span>
+    <span class="chip"><b>pm2</b> · process manager</span>
+    <span class="chip"><b>Xvfb + noVNC</b> · headless display</span>
+  </div>
+  <p style="font-size:13.5px">Every piece is a boot-persistent service — a reboot brings the whole stack back automatically, MT4 auto-logs-in, and the engines resume. Remote control is command-line over SSH; the MT4 desktop is reachable in a browser through a tunneled noVNC session.</p>
+
+  <h2>What's live right now</h2>
+  <table>
+    <tr><th>Component</th><th>Setting</th></tr>
+    <tr><td>Fade 1×9</td><td class="mono">9 units × 1% · trend-gate ON · target 2R</td></tr>
+    <tr><td>Ichimoku</td><td class="mono">gold/EUR/JPY singles × 1% · gold triplet OFF · Kijun-trail + BE@2R</td></tr>
+    <tr><td>Account</td><td class="mono">BoForex demo · one session · EA demo-locked</td></tr>
+    <tr><td>Alerts</td><td class="mono">Discord (both engines) · signal + execution posts</td></tr>
+  </table>
+
+  <div class="note"><b>Reading the backtest honestly.</b> The $33.8M figure is a discrete-lot backtest (2023–2025) that compounds aggressively and assumes fills at size with no slippage. Real results will be a fraction of it — the point of running this demo live is to measure how much of the edge survives. The drawdown (≈43%) and the shape are the parts to trust, not the absolute dollars.</p></div>
+
+  <footer>EdgeFlow · dual-engine forex system · research + live-demo · not financial advice. — NINJA</footer>
+</body></html>
