@@ -35,9 +35,9 @@
 <div class="wrap">
   <header>
     <p class="eyebrow">Ichimoku Lab · position structures</p>
-    <h1>Triplet vs 1x9 — the "$4B" run</h1>
+    <h1>Triplet vs 1×9 — the uncapped "$10B" run</h1>
     <p class="sub" id="sub"></p>
-    <p class="warn"><b>⚠ Uncapped theoretical.</b> These 9%-risk figures compound with no broker lot cap — the same fantasy-vs-capped story as our main system. The real, scale-invariant metric is the <b>drawdown %</b>. Absolute dollars would be throttled hard by the 100-lot-per-order cap in reality.</p>
+    <p class="warn"><b>⚠ Uncapped fantasy — and it INVERTS in reality.</b> These 9%-risk dollars compound with no broker lot cap, so they aren't reachable. On a real capped $2k account the ranking <b>flips</b>: singles win and the triplet <b>drags</b> — gold-as-triplet made <b>−68%</b> vs single <b>+106%</b>, and a live gold triplet netted <b>−$2.53</b> (banker +$31.83, two runners −$34.36). Read the <b>drawdown %</b>, not the dollars. <b>Live runs singles.</b></p>
   </header>
 
   <div class="tiles" id="tiles"></div>
@@ -53,8 +53,8 @@ const NS="http://www.w3.org/2000/svg", el=(t,a)=>{const e=document.createElement
 const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const usd=v=>v>=1e9?'$'+(v/1e9).toFixed(1)+'B':v>=1e6?'$'+(v/1e6).toFixed(0)+'M':'$'+Math.round(v).toLocaleString();
 const SH={'1% single':'1% single','9% single (all trail)':'9% single','Triplet 3×3% (bank 1 @2R, run 2)':'Triplet 3×3%','1x9  9×1% (bank 1 @2R, run 8)':'1x9  9×1%'};
-const COLS=['--c0','--c1','--c2','--c3']; const S=DATA.sizing.map((s,i)=>({...s,c:COLS[i],short:SH[s.name]||s.name,hero:/1x9/.test(s.name)}));
-const nine=S.find(x=>x.hero), trip=S.find(x=>/Triplet/.test(x.name));
+const COLS=['--c0','--c1','--c2','--c3']; const S=DATA.sizing.map((s,i)=>({...s,c:COLS[i],short:SH[s.name]||s.name,hero:/Triplet/.test(s.name)}));
+const nine=S.find(x=>/1x9/.test(x.name)), trip=S.find(x=>/Triplet/.test(x.name));
 
 const C=DATA.pooled.stats; const eq0=S[0].equity;
 const d0=new Date(eq0[0].t*1000), d1=new Date(eq0[eq0.length-1].t*1000);
@@ -76,6 +76,6 @@ for(const s of S.slice().sort((a,b)=>(a.hero?1:0)-(b.hero?1:0))){ let dp=''; s.e
   const last=s.equity[s.equity.length-1]; svg.appendChild(el('circle',{cx:X(last.t),cy:Y(last.b),r:s.hero?4:3,fill:cv(s.c)}));
   const lb=el('text',{class:'endlbl',x:X(last.t)+7,y:Y(last.b)+4,fill:cv(s.c)});lb.textContent=usd(last.b);svg.appendChild(lb); }
 
-document.querySelector('#tbl tbody').innerHTML=S.map(s=>`<tr><td><span class="dot" style="background:var(${s.c})"></span>${s.short}${s.hero?' (the $4B run)':''}</td><td class="pos">${usd(s.final)}</td><td>${s.maxDD}%</td></tr>`).join('');
+document.querySelector('#tbl tbody').innerHTML=S.map(s=>`<tr><td><span class="dot" style="background:var(${s.c})"></span>${s.short}${s.hero?' (uncapped top — but see ⚠ above)':''}</td><td class="pos">${usd(s.final)}</td><td>${s.maxDD}%</td></tr>`).join('');
 document.getElementById('foot').innerHTML='All structures bank 1 unit at +2R and run the rest on the trailing Kijun (except "single"). The scale-out cuts drawdown sharply (64% → 50%). Note: <b>triplet beats 1x9 here</b> — uncapped on a small account, banking a bigger fraction (1/3 vs 1/9) smooths the ride and compounds better. 1x9 only wins once the account is big enough that the broker 100-lot cap binds (900 lots of capacity vs 300). Side-project research — uncapped theoretical, not the live system, not advice.';
 </script>
