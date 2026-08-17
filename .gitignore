@@ -1,0 +1,15 @@
+# keep backtest/strategy scripts OUT of the public repo
+ichimoku-mtf.js
+ichimoku-test.js
+combine.js
+gold-*.js
+fade-*.js
+live-*.js
+sim*.js
+scale-*.js
+press-*.js
+realistic-*.js
+loss-hunt.js
+chart-ratchet.json
+fade-perpair.json
+fade-timestop.json
