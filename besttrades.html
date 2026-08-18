@@ -6,61 +6,79 @@
     --accent:#22d3bb; --up:#3fb37f; --down:#e5687a; --gold:#e5b567;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
   @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --down:#c94c60; --gold:#b07d1a; } }
-  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:860px;margin:0 auto}
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:900px;margin:0 auto}
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
   h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
-  .lead{font-size:15.5px;color:var(--ink2);margin:0 0 24px;max-width:64ch}
+  .lead{font-size:15.5px;color:var(--ink2);margin:0 0 26px;max-width:66ch}
   .lead b{color:var(--ink)}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 12px;position:relative;overflow:hidden}
-  .card .rankbadge{position:absolute;top:-8px;right:8px;font-family:var(--disp);font-size:70px;font-weight:600;color:var(--line);line-height:1;user-select:none}
-  .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;position:relative;z-index:1}
-  .pair{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink)}
-  .dir{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:5px}
+  .pairhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .pairhead .sym{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink)}
+  .pairhead .sub{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .pairhead .tot{margin-left:auto;font-family:var(--disp);font-size:15px;color:var(--up)}
+  .row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin:0 0 9px;position:relative;overflow:hidden}
+  .rank{font-family:var(--disp);font-size:19px;font-weight:600;color:var(--ink3);width:20px;text-align:center;flex:none}
+  .mid{flex:1;min-width:0}
+  .midtop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .dir{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:5px}
   .dir.long{color:var(--up);background:color-mix(in srgb,var(--up) 15%,transparent)}
   .dir.short{color:var(--down);background:color-mix(in srgb,var(--down) 15%,transparent)}
-  .R{font-family:var(--disp);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:-.02em;margin-left:auto}
-  .bar{height:6px;background:var(--surface2);border-radius:4px;margin:12px 0 10px;overflow:hidden;position:relative;z-index:1}
-  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--up)));border-radius:4px}
-  .made{font-family:var(--mono);font-size:12.5px;color:var(--ink2);margin:0 0 10px;position:relative;z-index:1}
-  .made b{color:var(--up);font-weight:700} .made .k{color:var(--ink3)}
-  .meta{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink2);position:relative;z-index:1}
-  .meta b{color:var(--ink);font-weight:600} .meta .k{color:var(--ink3)}
-  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--ink2);margin:22px 0 0;line-height:1.55}
+  .eng{font-family:var(--mono);font-size:11px;color:var(--ink2)}
+  .eng b{color:var(--ink)}
+  .sub2{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-top:3px}
+  .sub2 b{color:var(--ink2);font-weight:600}
+  .amt{font-family:var(--disp);font-size:23px;font-weight:600;color:var(--up);letter-spacing:-.02em;text-align:right;flex:none;white-space:nowrap}
+  .amt .r{display:block;font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:400;margin-top:1px}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--ink2);margin:30px 0 0;line-height:1.55}
   .note b{color:var(--ink)}
   footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
 </style></head><body>
-  <p class="eyebrow">the 2-year backtest · biggest winners by return-on-risk</p>
+  <p class="eyebrow">the 2-year backtest · biggest paydays by dollar profit</p>
   <h1>Greatest Hits</h1>
-  <p class="lead">The five biggest single trades of the run, ranked by <b>R</b> (multiple of risk). Every one is an <b>Ichimoku trend ride</b> — the fade engine banks a fixed 2R, so the monsters always come from the trend follower catching a multi-day move on a tight stop. A small stop under a big trend is where the outsized R:R lives.</p>
-  <div id="cards"></div>
-  <p class="note"><b>Read these as outliers, not the edge.</b> Kaiten's real edge is <b>consistency</b> — 62 clean 2R fade salvos plus steady trend rides — not these five. But they show what the trend engine is <em>positioned</em> for: it loses small and often (39% win), then occasionally lands a +32R. Dollar figures are anchored to the <b>$2k starting stake</b> — but risk is 1% of the <em>current</em> balance, so the same trade earns proportionally more as the account compounds (that +32R actually landed mid-run, banking far more than $641). R-based backtest (Dukascopy, spread charged); not the demo's realized P&L.</p>
+  <p class="lead">The five biggest single trades on <b>each pair</b>, ranked by <b>actual dollars banked</b> — sized off the account balance at the moment they fired. Because risk is 1% of the <em>current</em> balance, the fattest tickets are the trades that landed late in the run on an eight-figure account. Every dollar figure is what that one trade added to the stack.</p>
+  <div id="pairs"></div>
+  <p class="note"><b>Why these and not the highest-R trades?</b> Dollars ≈ <em>size × R</em>, and size tracks the balance at entry (1% risk, capped at 100 lots per unit). So a plain <b>2R fade</b> fired on a $27M balance out-earns a <b>32R</b> monster from early in the run. Almost all of these are pinned at the <b>100-lot cap</b> — past that point the account is too big for the broker size limit, so the "best" trades cluster near the cap rather than spreading out. R-based backtest (Dukascopy, spread charged); demo model, not realized broker P&L.</p>
   <footer>Kaiten · 回天 · greatest hits from the 2-year run · not financial advice. — NINJA</footer>
 <script>
-  const T=[
-    {sym:'USD/JPY',dir:'LONG', R:32.07,date:'Jun 19, 2024',held:'3.0 days',pips:180,stop:6, peak:33.55},
-    {sym:'XAU/USD',dir:'SHORT',R:21.16,date:'Dec 8, 2023', held:'2.3 days',pips:248,stop:12,peak:30.19},
-    {sym:'XAU/USD',dir:'LONG', R:19.16,date:'Jan 30, 2025',held:'1.5 days',pips:418,stop:22,peak:25.91},
-    {sym:'EUR/USD',dir:'SHORT',R:15.23,date:'Apr 12, 2024',held:'2.7 days',pips:87, stop:6, peak:17.86},
-    {sym:'XAU/USD',dir:'SHORT',R:14.13,date:'Sep 26, 2023',held:'2.8 days',pips:411,stop:29,peak:18.05},
-  ];
-  const max=T[0].R;
-  document.getElementById('cards').innerHTML=T.map((t,i)=>`
-    <div class="card">
-      <div class="rankbadge">${i+1}</div>
-      <div class="top">
-        <span class="pair">${t.sym}</span>
-        <span class="dir ${t.dir.toLowerCase()}">${t.dir}</span>
-        <span class="R">+${t.R.toFixed(2)}R</span>
-      </div>
-      <div class="bar"><i style="width:${(t.R/max*100).toFixed(1)}%"></i></div>
-      <div class="made"><b>+$${(t.R*20).toLocaleString(undefined,{maximumFractionDigits:0})}</b> on a $2k stake <span class="k">·</span> <b>+${Math.round(t.R)}%</b> of the account in one trade</div>
-      <div class="meta">
-        <span><span class="k">date</span> <b>${t.date}</b></span>
-        <span><span class="k">held</span> <b>${t.held}</b></span>
-        <span><span class="k">captured</span> <b>${t.pips} pips</b></span>
-        <span><span class="k">stop</span> <b>${t.stop}p</b></span>
-        <span><span class="k">peaked</span> <b>${t.peak}R</b></span>
-      </div>
-    </div>`).join('');
+  const DATA={
+   "XAU/USD":[
+    {pnl:1219400,R:12.15,dir:"LONG",eng:"ICHI",date:"2025-04-17",bal:24341654},
+    {pnl:1011407,R:1.92,dir:"LONG",eng:"FADE",date:"2024-04-18",bal:7850615},
+    {pnl:986174,R:1.92,dir:"LONG",eng:"FADE",date:"2024-10-08",bal:17102811},
+    {pnl:986174,R:1.92,dir:"SHORT",eng:"FADE",date:"2025-04-24",bal:26737474},
+    {pnl:986174,R:1.92,dir:"LONG",eng:"FADE",date:"2025-04-29",bal:27345600}],
+   "EUR/USD":[
+    {pnl:423102,R:1.97,dir:"SHORT",eng:"FADE",date:"2025-05-01",bal:28795625},
+    {pnl:376115,R:1.96,dir:"LONG",eng:"FADE",date:"2024-04-16",bal:7761630},
+    {pnl:363569,R:1.96,dir:"LONG",eng:"FADE",date:"2025-03-04",bal:19898134},
+    {pnl:349272,R:1.96,dir:"LONG",eng:"FADE",date:"2025-01-15",bal:19549055},
+    {pnl:343805,R:1.96,dir:"LONG",eng:"FADE",date:"2025-04-11",bal:23101365}],
+   "USD/JPY":[
+    {pnl:559648,R:1.97,dir:"LONG",eng:"FADE",date:"2024-04-29",bal:9355022},
+    {pnl:473704,R:1.97,dir:"LONG",eng:"FADE",date:"2024-01-31",bal:4295936},
+    {pnl:468820,R:1.97,dir:"LONG",eng:"FADE",date:"2024-06-14",bal:9287324},
+    {pnl:301976,R:1.97,dir:"LONG",eng:"FADE",date:"2023-12-08",bal:1701598},
+    {pnl:227957,R:1.93,dir:"LONG",eng:"FADE",date:"2024-05-16",bal:9093697}]
+  };
+  const ENG={ICHI:"Ichimoku trend",FADE:"Fade 1×9"};
+  const M=v=>'$'+Math.round(v).toLocaleString();
+  const short=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+Math.round(v/1e3)+'k':'$'+v;
+  const dfmt=d=>{const[y,m,day]=d.split('-');return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+(+day)+', '+y;};
+  document.getElementById('pairs').innerHTML=Object.entries(DATA).map(([sym,rows])=>{
+    const tot=rows.reduce((s,r)=>s+r.pnl,0);
+    return `<div class="pairhead"><span class="sym">${sym}</span><span class="sub">top 5 paydays</span><span class="tot">${short(tot)} across these 5</span></div>`+
+    rows.map((t,i)=>`
+      <div class="row">
+        <div class="rank">${i+1}</div>
+        <div class="mid">
+          <div class="midtop">
+            <span class="dir ${t.dir.toLowerCase()}">${t.dir}</span>
+            <span class="eng"><b>${ENG[t.eng]}</b></span>
+            <span class="eng">· ${dfmt(t.date)}</span>
+          </div>
+          <div class="sub2">balance at entry <b>${short(t.bal)}</b> · 100-lot cap</div>
+        </div>
+        <div class="amt">+${M(t.pnl)}<span class="r">+${t.R.toFixed(1)}R</span></div>
+      </div>`).join('');
+  }).join('');
 </script>
 </body></html>
