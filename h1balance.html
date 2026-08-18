@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>H1 vs H4 Equity</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --up:#3fb37f; --down:#e5687a; --gold:#e5b567;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --gold:#b07d1a; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:940px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{font-size:15px;color:var(--ink2);margin:0 0 18px;max-width:72ch}
+  .lead b{color:var(--ink)}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 16px}
+  @media(max-width:640px){.tiles{grid-template-columns:1fr}}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;border-left-width:3px}
+  .tile .nm{font-family:var(--mono);font-size:11px;color:var(--ink2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .tile .sw{width:11px;height:3px;border-radius:2px;display:inline-block}
+  .tile .fin{font-family:var(--disp);font-size:23px;font-weight:600;letter-spacing:-.01em}
+  .tile .dd{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-top:2px}
+  .toolbar{display:flex;gap:8px;align-items:center;margin:0 0 8px;font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .toolbar button{font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--line);color:var(--ink2);border-radius:7px;padding:5px 11px;cursor:pointer}
+  .toolbar button.on{color:var(--ink);border-color:var(--accent)}
+  .chartwrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 8px 6px}
+  canvas{width:100%;height:auto;display:block}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--ink2);margin:18px 0 0;line-height:1.55}
+  .note b{color:var(--ink)}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:24px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+  <p class="eyebrow">the decision · $2,000 start · real discrete lots + 100-lot broker cap</p>
+  <h1>Gold's Timeframe, in Dollars</h1>
+  <p class="lead">Three versions of the same 2-year run, compounding a real $2k account. They differ in one thing: the Ichimoku engine's entry timeframe per pair. The question — <b>is it worth moving gold to H1?</b> The curves answer it: moving the <b>majors</b> to H1 lifts the whole account; adding <b>gold</b> to H1 does almost nothing but adds drawdown.</p>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="toolbar">scale: <button id="blog" class="on">log</button><button id="blin">linear</button></div>
+  <div class="chartwrap"><canvas id="cv" width="1800" height="820"></canvas></div>
+
+  <p class="note"><b>Why gold H1 is all cost, no reward.</b> Gold is the account's biggest earner because its ticket size is huge — which means gold trades constantly hit the broker's <b>100-lot cap</b>. Once capped, gold's extra H1 trades can't compound (they're already maxed), so the raw "+51R more" from gold-H1 turns into just <b>+$37k on a $36.8M base — 0.1%</b>. But the drawdown from those bumpier H1 gold trades is real: <b>38.6% → 41.0%</b>. The majors are the opposite: they rarely hit the cap, so H1's extra trades compound cleanly and <em>smooth</em> the curve (drawdown even drops). <b>Verdict: majors → H1, gold stays H4.</b> Not yet live — pending a demo confirmation.</p>
+  <footer>Kaiten · 回天 · discrete-lot compounding · real broker spreads + 100-lot cap · not financial advice. — NINJA</footer>
+<script src="h1compare-data.js"></script>
+<script>
+  const D=window.H1CMP;
+  const SER=[
+    {k:'base',nm:'all H4 · current live',col:getco('--ink3'),dash:[]},
+    {k:'reco',nm:'majors H1 · gold H4',col:getco('--accent'),dash:[]},
+    {k:'all', nm:'all H1 (gold too)',col:getco('--gold'),dash:[7,5]},
+  ];
+  function getco(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  const M=v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v).toLocaleString());
+  // tiles
+  document.getElementById('tiles').innerHTML=SER.map(s=>{const d=D[s.k];
+    return `<div class="tile" style="border-left-color:${s.col}"><div class="nm"><span class="sw" style="background:${s.col}"></span>${s.nm}</div><div class="fin" style="color:${s.col}">${M(d.final)}</div><div class="dd">max drawdown ${d.dd}%</div></div>`;}).join('');
+  // chart
+  const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const PADL=96,PADR=26,PADT=22,PADB=40;
+  let logScale=true;
+  const allEq=SER.flatMap(s=>D[s.k].eq);
+  const t0=Math.min(...allEq.map(p=>p.t)),t1=Math.max(...allEq.map(p=>p.t));
+  const bmin=2000,bmax=Math.max(...allEq.map(p=>p.b));
+  const X=t=>PADL+(t-t0)/(t1-t0)*(W-PADL-PADR);
+  function Y(b){ b=Math.max(b,1);
+    if(logScale){const l0=Math.log10(bmin),l1=Math.log10(bmax);return PADT+(1-(Math.log10(b)-l0)/(l1-l0))*(H-PADT-PADB);}
+    return PADT+(1-(b-bmin)/(bmax-bmin))*(H-PADT-PADB); }
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.font='22px ui-monospace,monospace';
+    const line=getco('--line'),ink3=getco('--ink3');
+    // y gridlines
+    const ticks=logScale?[2e3,1e4,1e5,1e6,1e7,4e7]:[bmin,bmax*0.25,bmax*0.5,bmax*0.75,bmax];
+    ctx.textAlign='right';ctx.textBaseline='middle';
+    for(const tk of ticks){ if(tk>bmax*1.02)continue; const y=Y(tk); ctx.strokeStyle=line;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(PADL,y);ctx.lineTo(W-PADR,y);ctx.stroke();
+      ctx.fillStyle=ink3;ctx.fillText(M(tk),PADL-12,y); }
+    // x year labels
+    ctx.textAlign='center';ctx.textBaseline='top';
+    for(let yr=2023;yr<=2025;yr++){ const tt=Date.UTC(yr,0,1)/1000; if(tt<t0||tt>t1)continue; const x=X(tt);
+      ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(x,PADT);ctx.lineTo(x,H-PADB);ctx.stroke();
+      ctx.fillStyle=ink3;ctx.fillText(yr,x,H-PADB+8); }
+    // series (draw base first, winner on top)
+    for(const s of SER){ const eq=D[s.k].eq; ctx.strokeStyle=s.col;ctx.lineWidth=s.k==='reco'?4:2.5;ctx.setLineDash(s.dash);
+      ctx.beginPath(); eq.forEach((p,i)=>{const x=X(p.t),y=Y(p.b); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+  draw();
+  document.getElementById('blog').onclick=()=>{logScale=true;sel('blog');draw();};
+  document.getElementById('blin').onclick=()=>{logScale=false;sel('blin');draw();};
+  function sel(id){document.getElementById('blog').classList.toggle('on',id==='blog');document.getElementById('blin').classList.toggle('on',id==='blin');}
+</script>
+</body></html>
