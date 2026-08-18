@@ -1,0 +1,63 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Greatest Hits</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --up:#3fb37f; --down:#e5687a; --gold:#e5b567;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --down:#c94c60; --gold:#b07d1a; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:860px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{font-size:15.5px;color:var(--ink2);margin:0 0 24px;max-width:64ch}
+  .lead b{color:var(--ink)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 12px;position:relative;overflow:hidden}
+  .card .rankbadge{position:absolute;top:-8px;right:8px;font-family:var(--disp);font-size:70px;font-weight:600;color:var(--line);line-height:1;user-select:none}
+  .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;position:relative;z-index:1}
+  .pair{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink)}
+  .dir{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:5px}
+  .dir.long{color:var(--up);background:color-mix(in srgb,var(--up) 15%,transparent)}
+  .dir.short{color:var(--down);background:color-mix(in srgb,var(--down) 15%,transparent)}
+  .R{font-family:var(--disp);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:-.02em;margin-left:auto}
+  .bar{height:6px;background:var(--surface2);border-radius:4px;margin:12px 0 10px;overflow:hidden;position:relative;z-index:1}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--up)));border-radius:4px}
+  .meta{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink2);position:relative;z-index:1}
+  .meta b{color:var(--ink);font-weight:600} .meta .k{color:var(--ink3)}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--ink2);margin:22px 0 0;line-height:1.55}
+  .note b{color:var(--ink)}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+  <p class="eyebrow">the 2-year backtest · biggest winners by return-on-risk</p>
+  <h1>Greatest Hits</h1>
+  <p class="lead">The five biggest single trades of the run, ranked by <b>R</b> (multiple of risk). Every one is an <b>Ichimoku trend ride</b> — the fade engine banks a fixed 2R, so the monsters always come from the trend follower catching a multi-day move on a tight stop. A small stop under a big trend is where the outsized R:R lives.</p>
+  <div id="cards"></div>
+  <p class="note"><b>Read these as outliers, not the edge.</b> Kaiten's real edge is <b>consistency</b> — 62 clean 2R fade salvos plus steady trend rides — not these five. But they show what the trend engine is <em>positioned</em> for: it loses small and often (39% win), then occasionally lands a +32R. R-based backtest (Dukascopy, spread charged); not the demo's realized P&L.</p>
+  <footer>Kaiten · 回天 · greatest hits from the 2-year run · not financial advice. — NINJA</footer>
+<script>
+  const T=[
+    {sym:'USD/JPY',dir:'LONG', R:32.07,date:'Jun 19, 2024',held:'3.0 days',pips:180,stop:6, peak:33.55},
+    {sym:'XAU/USD',dir:'SHORT',R:21.16,date:'Dec 8, 2023', held:'2.3 days',pips:248,stop:12,peak:30.19},
+    {sym:'XAU/USD',dir:'LONG', R:19.16,date:'Jan 30, 2025',held:'1.5 days',pips:418,stop:22,peak:25.91},
+    {sym:'EUR/USD',dir:'SHORT',R:15.23,date:'Apr 12, 2024',held:'2.7 days',pips:87, stop:6, peak:17.86},
+    {sym:'XAU/USD',dir:'SHORT',R:14.13,date:'Sep 26, 2023',held:'2.8 days',pips:411,stop:29,peak:18.05},
+  ];
+  const max=T[0].R;
+  document.getElementById('cards').innerHTML=T.map((t,i)=>`
+    <div class="card">
+      <div class="rankbadge">${i+1}</div>
+      <div class="top">
+        <span class="pair">${t.sym}</span>
+        <span class="dir ${t.dir.toLowerCase()}">${t.dir}</span>
+        <span class="R">+${t.R.toFixed(2)}R</span>
+      </div>
+      <div class="bar"><i style="width:${(t.R/max*100).toFixed(1)}%"></i></div>
+      <div class="meta">
+        <span><span class="k">date</span> <b>${t.date}</b></span>
+        <span><span class="k">held</span> <b>${t.held}</b></span>
+        <span><span class="k">captured</span> <b>${t.pips} pips</b></span>
+        <span><span class="k">stop</span> <b>${t.stop}p</b></span>
+        <span><span class="k">peaked</span> <b>${t.peak}R</b></span>
+      </div>
+    </div>`).join('');
+</script>
+</body></html>
