@@ -21,6 +21,8 @@
   .R{font-family:var(--disp);font-size:30px;font-weight:600;color:var(--accent);letter-spacing:-.02em;margin-left:auto}
   .bar{height:6px;background:var(--surface2);border-radius:4px;margin:12px 0 10px;overflow:hidden;position:relative;z-index:1}
   .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--up)));border-radius:4px}
+  .made{font-family:var(--mono);font-size:12.5px;color:var(--ink2);margin:0 0 10px;position:relative;z-index:1}
+  .made b{color:var(--up);font-weight:700} .made .k{color:var(--ink3)}
   .meta{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink2);position:relative;z-index:1}
   .meta b{color:var(--ink);font-weight:600} .meta .k{color:var(--ink3)}
   .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--ink2);margin:22px 0 0;line-height:1.55}
@@ -31,7 +33,7 @@
   <h1>Greatest Hits</h1>
   <p class="lead">The five biggest single trades of the run, ranked by <b>R</b> (multiple of risk). Every one is an <b>Ichimoku trend ride</b> — the fade engine banks a fixed 2R, so the monsters always come from the trend follower catching a multi-day move on a tight stop. A small stop under a big trend is where the outsized R:R lives.</p>
   <div id="cards"></div>
-  <p class="note"><b>Read these as outliers, not the edge.</b> Kaiten's real edge is <b>consistency</b> — 62 clean 2R fade salvos plus steady trend rides — not these five. But they show what the trend engine is <em>positioned</em> for: it loses small and often (39% win), then occasionally lands a +32R. R-based backtest (Dukascopy, spread charged); not the demo's realized P&L.</p>
+  <p class="note"><b>Read these as outliers, not the edge.</b> Kaiten's real edge is <b>consistency</b> — 62 clean 2R fade salvos plus steady trend rides — not these five. But they show what the trend engine is <em>positioned</em> for: it loses small and often (39% win), then occasionally lands a +32R. Dollar figures are anchored to the <b>$2k starting stake</b> — but risk is 1% of the <em>current</em> balance, so the same trade earns proportionally more as the account compounds (that +32R actually landed mid-run, banking far more than $641). R-based backtest (Dukascopy, spread charged); not the demo's realized P&L.</p>
   <footer>Kaiten · 回天 · greatest hits from the 2-year run · not financial advice. — NINJA</footer>
 <script>
   const T=[
@@ -51,6 +53,7 @@
         <span class="R">+${t.R.toFixed(2)}R</span>
       </div>
       <div class="bar"><i style="width:${(t.R/max*100).toFixed(1)}%"></i></div>
+      <div class="made"><b>+$${(t.R*20).toLocaleString(undefined,{maximumFractionDigits:0})}</b> on a $2k stake <span class="k">·</span> <b>+${Math.round(t.R)}%</b> of the account in one trade</div>
       <div class="meta">
         <span><span class="k">date</span> <b>${t.date}</b></span>
         <span><span class="k">held</span> <b>${t.held}</b></span>
