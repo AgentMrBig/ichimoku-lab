@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market Clock</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --jpy:#22d3bb; --eur:#6ea8fe; --xau:#e5b567; --hot:#e5687a; --dead:#66727f;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --jpy:#0f9e8e; --eur:#2f6fe0; --xau:#b07d1a; --hot:#c94c60; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:960px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--jpy);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{font-size:15px;color:var(--ink2);margin:0 0 16px;max-width:72ch}
+  .lead b{color:var(--ink)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink2);margin:0 0 10px}
+  .legend .it{display:flex;align-items:center;gap:6px} .legend .sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+  .chartwrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 10px 8px;overflow-x:auto}
+  canvas{width:100%;height:auto;display:block;min-width:620px}
+  h2{font-family:var(--disp);font-weight:600;font-size:18px;margin:28px 0 8px}
+  table{width:100%;border-collapse:collapse;margin:6px 0;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:400}
+  td.win{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+  .pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;margin-right:4px}
+  .pill.hot{background:color-mix(in srgb,var(--hot) 20%,transparent);color:var(--hot)}
+  .pill.dead{background:var(--surface2);color:var(--ink3)}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--xau);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--ink2);margin:20px 0 0;line-height:1.55}
+  .note b{color:var(--ink)}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:24px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+  <p class="eyebrow">the trading day · avg hourly range by UTC hour · 1-2 yrs of 1-min data</p>
+  <h1>Market Clock</h1>
+  <p class="lead">When each pair is actually <b>alive</b>. Each line is that pair's average hourly range, normalized to its own busiest hour (100%), so you can compare the <b>shape</b> of the day across pairs on different scales. The market has a heartbeat — dead in the Asian afternoon, roaring through the London/New York overlap, and a treacherous dead spot at the 5pm‑NY rollover.</p>
+
+  <div class="legend">
+    <div class="it"><span class="sw" style="background:var(--jpy)"></span>USD/JPY</div>
+    <div class="it"><span class="sw" style="background:var(--eur)"></span>EUR/USD</div>
+    <div class="it"><span class="sw" style="background:var(--xau)"></span>XAU/USD</div>
+    <div class="it"><span class="sw" style="background:var(--hot);height:10px;opacity:.5"></span>power hours</div>
+    <div class="it"><span class="sw" style="background:var(--dead);height:10px;opacity:.5"></span>rollover dead-zone</div>
+  </div>
+  <div class="chartwrap"><canvas id="cv" width="1840" height="720"></canvas></div>
+
+  <h2>The windows that matter</h2>
+  <table>
+    <thead><tr><th>UTC</th><th>Session / event</th><th>What it means for us</th></tr></thead>
+    <tbody>
+      <tr><td class="win">00:00–06:00</td><td><span class="pill">Tokyo</span>Asian session</td><td>Quiet for the majors; <b>gold</b> has a real 01:00 burst. Clean, thin, level-respecting.</td></tr>
+      <tr><td class="win">07:00–08:00</td><td><span class="pill">London open</span></td><td>Volatility steps up — the European desks arrive.</td></tr>
+      <tr><td class="win">12:00–15:00</td><td><span class="pill hot">London × NY overlap</span></td><td><b>The power hours.</b> Every pair's peak. 12:30 US data lands here. Where the fade edge lives.</td></tr>
+      <tr><td class="win">12:30</td><td>US data drop</td><td>NFP / CPI / claims — the biggest scheduled shocks. Event-guard territory.</td></tr>
+      <tr><td class="win">18:00</td><td>FOMC decisions</td><td>Trend/shock days that <em>invert</em> the fade edge. Stand down.</td></tr>
+      <tr><td class="win">21:00–22:00</td><td><span class="pill dead">5pm-NY rollover</span></td><td><b>Dead-zone + spread blowout.</b> Gold at its quietest, spreads explode 8p+. Hard stand-down — this once cost $5k.</td></tr>
+      <tr><td class="win">~03:00</td><td>BOJ (on decision days)</td><td>Yen shock window; rare but violent.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note"><b>How Kaiten uses the clock.</b> The fade hunts the <b>12:00–15:00 power hours</b> where reversals are cleanest and liquidity is deep. It <b>stands down at the 21:00 rollover</b> (spread guard blocks &gt;3p) and around scheduled data/central-bank windows, because those are the trend/shock days that flip a reversal system upside down. The daily map isn't decoration — it's the hunting schedule. Times are UTC; the 5pm-NY rollover shifts an hour with US daylight saving.</p>
+  <footer>Kaiten · 回天 · market session profile · Dukascopy 1-min data · not financial advice. — NINJA</footer>
+<script src="session-data.js"></script>
+<script>
+  const S=window.SESS, cv=document.getElementById('cv'), ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  const PADL=44,PADR=16,PADT=18,PADB=52;
+  const co=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const SER=[['USD/JPY','--jpy'],['EUR/USD','--eur'],['XAU/USD','--xau']];
+  const X=h=>PADL+h/23*(W-PADL-PADR);
+  const Y=p=>PADT+(1-p/100)*(H-PADT-PADB);
+  const line=co('--line'),ink3=co('--ink3');
+  // session bands
+  function band(h0,h1,color,alpha){ ctx.fillStyle=color; ctx.globalAlpha=alpha; ctx.fillRect(X(h0),PADT,X(h1)-X(h0),H-PADT-PADB); ctx.globalAlpha=1; }
+  band(12,15,co('--hot'),0.12);        // power hours
+  band(21,22,co('--dead'),0.16);       // rollover dead-zone
+  // y gridlines
+  ctx.font='20px ui-monospace,monospace'; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(const p of [0,25,50,75,100]){ const y=Y(p); ctx.strokeStyle=line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PADL,y);ctx.lineTo(W-PADR,y);ctx.stroke(); ctx.fillStyle=ink3;ctx.fillText(p+'%',PADL-8,y); }
+  // x hour labels (every 3h)
+  ctx.textAlign='center';ctx.textBaseline='top';
+  for(let h=0;h<24;h+=3){ ctx.fillStyle=ink3; ctx.fillText(String(h).padStart(2,'0'),X(h),H-PADB+8); }
+  ctx.fillStyle=ink3; ctx.font='18px ui-monospace,monospace'; ctx.fillText('UTC hour',W/2,H-PADB+30);
+  // event markers
+  for(const [h,lbl] of [[12.5,'US data'],[18,'FOMC'],[3,'BOJ']]){ const x=X(h);
+    ctx.strokeStyle=ink3;ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,PADT);ctx.lineTo(x,H-PADB);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=ink3;ctx.save();ctx.translate(x-4,PADT+6);ctx.textAlign='left';ctx.font='15px ui-monospace,monospace';ctx.fillText(lbl,0,0);ctx.restore(); }
+  // series (normalized to own peak)
+  for(const [sym,cv2] of SER){ const d=S[sym], mx=d.peak; ctx.strokeStyle=co(cv2);ctx.lineWidth=3.5;ctx.beginPath();
+    d.byHour.forEach((v,h)=>{ const x=X(h),y=Y(v/mx*100); h?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.stroke();
+    // dot at peak hour
+    const ph=d.byHour.indexOf(mx); ctx.fillStyle=co(cv2);ctx.beginPath();ctx.arc(X(ph),Y(100),5,0,7);ctx.fill(); }
+</script>
+</body></html>
