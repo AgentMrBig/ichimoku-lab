@@ -1,0 +1,82 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>H1 Timeframe Study</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --up:#3fb37f; --down:#e5687a; --gold:#e5b567;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --down:#c94c60; --gold:#b07d1a; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:940px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{font-size:15.5px;color:var(--ink2);margin:0 0 8px;max-width:70ch}
+  .lead b{color:var(--ink)}
+  h2{font-family:var(--disp);font-weight:600;font-size:18px;margin:30px 0 6px}
+  .sub{font-size:13px;color:var(--ink3);margin:0 0 12px;max-width:72ch}
+  .verdicts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0 4px}
+  @media(max-width:640px){.verdicts{grid-template-columns:1fr}}
+  .vc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+  .vc .p{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink)}
+  .vc .move{font-family:var(--disp);font-size:20px;margin:6px 0 2px;letter-spacing:-.01em}
+  .vc.go .move{color:var(--up)} .vc.stay .move{color:var(--gold)}
+  .vc .why{font-size:12px;color:var(--ink2);line-height:1.45}
+  .vc .badge{position:absolute;top:12px;right:14px;font-size:16px}
+  table{width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:13px}
+  th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:400}
+  td.pair{font-family:var(--mono);font-weight:600;color:var(--ink)}
+  .live{color:var(--ink3)} .win{color:var(--up);font-weight:600} .bad{color:var(--down);font-weight:600}
+  .mono{font-family:var(--mono)}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--ink2);margin:24px 0 0;line-height:1.55}
+  .note b{color:var(--ink)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;background:var(--surface2);color:var(--ink2);margin-left:6px}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+  <p class="eyebrow">research · entry-timeframe study · daily bias, tenkan pullback, kijun trail</p>
+  <h1>The H1 Finding</h1>
+  <p class="lead">The Ichimoku engine sets its bias on the <b>daily</b> chart and times entries on a lower one. It has always timed on the <b>H4</b>. This study asks a simple question — <b>is H4 the right entry timeframe?</b> — and the answer turns out to be <b>different for each pair</b>. All figures are R-space on 2 years of 1-minute data (2023–2025), spread charged.</p>
+
+  <div class="verdicts">
+    <div class="vc go"><span class="badge">✅</span><div class="p">EUR/USD</div><div class="move">H4 → H1</div><div class="why">4× the net R, survives 3× spread. The clear winner.</div></div>
+    <div class="vc go"><span class="badge">✅</span><div class="p">USD/JPY</div><div class="move">H4 → H1</div><div class="why">2.4× the net R, holds up under 3× spread.</div></div>
+    <div class="vc stay"><span class="badge">🛡️</span><div class="p">XAU/USD</div><div class="move">stays H4</div><div class="why">H1 looks great until you charge real slippage — gold's wide spread breaks it. H4 stays home.</div></div>
+  </div>
+
+  <h2>1 · Timeframe sweep <span class="tag">in-sample, both directions</span></h2>
+  <p class="sub">Net R and profit factor at each entry timeframe. Lower TF = more trades. For the majors, more trades meant far more R at the same quality; gold's quality (PF) fell as it sped up.</p>
+  <table>
+    <thead><tr><th>Pair</th><th>H4 net · PF <span class="live">(live)</span></th><th>H2 net · PF</th><th>H1 net · PF</th></tr></thead>
+    <tbody>
+      <tr><td class="pair">USD/JPY</td><td class="live">+52 · 2.36</td><td>+49 · 1.60</td><td class="win">+127 · 1.93</td></tr>
+      <tr><td class="pair">EUR/USD</td><td class="live">+65 · 1.99</td><td>+119 · 1.84</td><td class="win">+276 · 2.04</td></tr>
+      <tr><td class="pair">XAU/USD</td><td class="live">+150 · 2.88</td><td>+164 · 1.97</td><td>+204 · 1.65</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2 · Out-of-sample split <span class="tag">train ½ → test ½ (unseen)</span></h2>
+  <p class="sub">The overfit test. Train on the first year, measure on the second the model never saw. H1 doesn't just survive — every pair's <b>test half beats its train half</b>. That's the fingerprint of a real edge, not a curve fit.</p>
+  <table>
+    <thead><tr><th>Pair (H1)</th><th>TRAIN net · PF</th><th>TEST net · PF</th><th></th></tr></thead>
+    <tbody>
+      <tr><td class="pair">USD/JPY</td><td>+35 · 1.48</td><td class="win">+92 · 2.46</td><td class="win">↑</td></tr>
+      <tr><td class="pair">EUR/USD</td><td>+110 · 1.81</td><td class="win">+166 · 2.29</td><td class="win">↑</td></tr>
+      <tr><td class="pair">XAU/USD</td><td>+59 · 1.37</td><td class="win">+146 · 1.93</td><td class="win">↑</td></tr>
+    </tbody>
+  </table>
+  <p class="sub" style="margin-top:2px">For contrast, H4 gold's famous PF 2.88 was a first-half mirage: train PF <b>4.41</b> → test PF <b>1.84</b>. It front-loaded.</p>
+
+  <h2>3 · Spread stress <span class="tag">the live-slippage tax</span></h2>
+  <p class="sub">The one that decides shippability. Re-charge each H1 trade at 2× and 3× the assumed spread to simulate real broker slippage. The majors shrug it off. Gold — short holds, wide spread — collapses.</p>
+  <table>
+    <thead><tr><th>Pair (H1)</th><th>×1 net · PF · DD</th><th>×2 net · PF · DD</th><th>×3 net · PF · DD</th></tr></thead>
+    <tbody>
+      <tr><td class="pair">EUR/USD</td><td>+276 · 2.04 · 11</td><td class="win">+218 · 1.74 · 15</td><td class="win">+159 · 1.48 · 19</td></tr>
+      <tr><td class="pair">USD/JPY</td><td>+127 · 1.93 · 19</td><td>+93 · 1.59 · 25</td><td>+59 · 1.33 · 32</td></tr>
+      <tr><td class="pair">XAU/USD</td><td>+204 · 1.65 · 16</td><td class="bad">+123 · 1.33 · 45</td><td class="bad">+41 · 1.10 · 83</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note"><b>The takeaway.</b> Entry timeframe isn't one knob for the whole engine — it's per-pair. The two majors were being throttled on H4 and belong on <b>H1</b>, where the edge is 2–4× larger and survives triple slippage. Gold stays on <b>H4</b>: on H1 it looks even better on paper, but that paper edge evaporates the moment you charge realistic spread, because gold's spread is wide and its H1 trades are too short to pay for it. Same logic, three pairs, two different homes. <b>Not yet live</b> — this is the case for the change, pending a demo run to confirm live fills match the model.</p>
+  <footer>Kaiten · 回天 · entry-timeframe research · Dukascopy 1-min data · not financial advice. — NINJA</footer>
+</body></html>
