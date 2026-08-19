@@ -1,0 +1,81 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adaptive Sizing</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --up:#3fb37f; --down:#e5687a; --gold:#e5b567;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --down:#c94c60; --gold:#b07d1a; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 20px 60px;max-width:960px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{font-size:15px;color:var(--ink2);margin:0 0 18px;max-width:74ch}
+  .lead b{color:var(--ink)}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 0 16px}
+  @media(max-width:640px){.tiles{grid-template-columns:1fr 1fr}}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+  .tile .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+  .tile .v{font-family:var(--disp);font-size:21px;font-weight:600;letter-spacing:-.01em}
+  .tile .v.up{color:var(--up)} .tile .v.warn{color:var(--gold)}
+  .tile .vs{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
+  .chartwrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 10px 8px}
+  canvas{width:100%;height:auto;display:block}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--ink2);margin:18px 0 0;line-height:1.55}
+  .note b{color:var(--ink)}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:24px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+  <p class="eyebrow">experimental · target-0.5R high-win-rate mode · 10% risk · adaptive split</p>
+  <h1>The 10% Curve</h1>
+  <p class="lead">The high‑win‑rate fade (98% win, bounded −1R loss) sized at <b>10% risk per trade</b>, split across positions to bypass the 100‑lot cap. Early on the split compounds cleanly. Once a salvo would need more lots than the market can realistically fill, we <b>deploy the max feasible instead</b> — effective risk decays, and exponential growth hands off to a linear grind. This is the honest version: no fantasy trillions, a real ceiling.</p>
+
+  <div class="tiles" id="tiles"></div>
+  <div class="chartwrap"><canvas id="cv" width="1840" height="900"></canvas></div>
+
+  <p class="note"><b>How to read it.</b> The <b>teal curve</b> is equity on a log scale; the <b>dashed line</b> marks where the split hit the fill ceiling and growth turned from exponential to linear. The <b>red panel</b> below is drawdown — it never breaches the start, because the loss is bounded (−1R) <em>and</em> rare (worst streak of 1 in two years). The catch is the ceiling assumption (~500 fillable lots per trade): raise it and the curve runs hotter, lower it and it flattens sooner. And the whole floor rests on losses staying isolated — a live 2–3 loss cluster at 10% is a −19% to −27% dip, survivable but real. <b>Research only — not the live system.</b></p>
+  <footer>Kaiten · 回天 · adaptive sizing experiment · discrete lots + fill ceiling · not financial advice. — NINJA</footer>
+<script src="adaptive-size-data.js?v=1"></script>
+<script>
+  const D=window.ADAPT, C=D.curve;
+  const co=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const M=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+Math.round(v/1e3)+'k':'$'+Math.round(v);
+  document.getElementById('tiles').innerHTML=[
+    ['start → final','$2k → '+M(D.final),'up',D.trades+' trades'],
+    ['max drawdown',D.maxDD+'%','warn','lowest '+M(D.lowest)],
+    ['exponential until',M(D.transition.b),'','then linear'],
+    ['risk decayed to','~'+D.endRiskPct+'%','','from 10% (lot ceiling)'],
+  ].map(([k,v,c,s])=>`<div class="tile"><div class="k">${k}</div><div class="v ${c||''}">${v}</div><div class="vs">${s}</div></div>`).join('');
+
+  const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const PADL=92,PADR=24,PADT=18;
+  const EH=H*0.66, GAP=34, DTOP=EH+GAP, DH=H-DTOP-30;
+  const t0=C[0].t,t1=C[C.length-1].t, X=t=>PADL+(t-t0)/(t1-t0)*(W-PADL-PADR);
+  const bmin=2000,bmax=Math.max(...C.map(p=>p.b));
+  const Ye=b=>{b=Math.max(b,1);const l0=Math.log10(bmin),l1=Math.log10(bmax);return PADT+(1-(Math.log10(b)-l0)/(l1-l0))*(EH-PADT);};
+  const ddMin=Math.min(...C.map(p=>p.dd)), Yd=d=>DTOP+(d/ (ddMin||-1))*DH;
+  const line=co('--line'),ink3=co('--ink3');
+  ctx.font='22px ui-monospace,monospace';
+  // equity gridlines (log decades)
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(const tk of [2e3,1e4,1e5,1e6,1e7]){ if(tk>bmax*1.1)continue; const y=Ye(tk); ctx.strokeStyle=line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PADL,y);ctx.lineTo(W-PADR,y);ctx.stroke(); ctx.fillStyle=ink3;ctx.fillText(M(tk),PADL-10,y); }
+  // year x labels
+  ctx.textAlign='center';ctx.textBaseline='top';
+  for(let yr=2023;yr<=2025;yr++){ const tt=Date.UTC(yr,0,1)/1000; if(tt<t0||tt>t1)continue; const x=X(tt); ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(x,PADT);ctx.lineTo(x,EH);ctx.stroke(); ctx.fillStyle=ink3;ctx.fillText(yr,x,EH+6); }
+  // transition marker
+  if(D.transition){ const x=X(D.transition.t); ctx.strokeStyle=co('--gold');ctx.setLineDash([7,5]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,PADT);ctx.lineTo(x,EH);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=co('--gold');ctx.textAlign='left';ctx.font='19px ui-monospace,monospace';ctx.fillText('split ceiling · '+M(D.transition.b),x+6,PADT+4);
+    ctx.fillText('exponential → linear',x+6,PADT+26); ctx.font='22px ui-monospace,monospace'; }
+  // equity curve
+  ctx.strokeStyle=co('--accent');ctx.lineWidth=3.5;ctx.beginPath();
+  C.forEach((p,i)=>{const x=X(p.t),y=Ye(p.b); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke();
+  // final label
+  ctx.fillStyle=co('--accent');ctx.textAlign='right';ctx.textBaseline='bottom';ctx.font='24px ui-monospace,monospace';ctx.fillText(M(D.final),W-PADR-4,Ye(D.final)-6);
+  // drawdown panel
+  ctx.strokeStyle=line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PADL,DTOP);ctx.lineTo(W-PADR,DTOP);ctx.stroke();
+  ctx.fillStyle=ink3;ctx.textAlign='right';ctx.textBaseline='middle';ctx.font='20px ui-monospace,monospace';
+  ctx.fillText('0%',PADL-10,DTOP); ctx.fillText(ddMin.toFixed(0)+'%',PADL-10,DTOP+DH);
+  ctx.fillStyle='color-mix(in srgb,'+co('--down')+' 22%,transparent)';
+  ctx.beginPath();ctx.moveTo(X(C[0].t),DTOP); C.forEach(p=>ctx.lineTo(X(p.t),Yd(p.dd))); ctx.lineTo(X(C[C.length-1].t),DTOP);ctx.closePath();ctx.fill();
+  ctx.strokeStyle=co('--down');ctx.lineWidth=2;ctx.beginPath();C.forEach((p,i)=>{const x=X(p.t),y=Yd(p.dd);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  ctx.fillStyle=ink3;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('drawdown',PADL,DTOP+4);
+</script>
+</body></html>
