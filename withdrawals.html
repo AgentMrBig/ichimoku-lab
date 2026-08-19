@@ -1,0 +1,155 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Payout Machine</title>
+<style>
+  :root{ --bg:#0e1116; --surface:#161b22; --surface2:#1b222c; --line:#273140; --ink:#e9eef4; --ink2:#9aa8b6; --ink3:#66727f;
+    --accent:#22d3bb; --up:#3fb37f; --down:#e5687a; --gold:#e5b567;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; --disp:"Georgia",ui-serif,serif; }
+  @media (prefers-color-scheme:light){ :root{ --bg:#f5f7f9; --surface:#fff; --surface2:#eef2f6; --line:#dde4ec; --ink:#141a21; --ink2:#4a5763; --ink3:#7a8794; --accent:#0f9e8e; --up:#1f9d63; --down:#c94c60; --gold:#b07d1a; } }
+  *{box-sizing:border-box} html,body{margin:0} body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:22px 20px 60px;max-width:980px;margin:0 auto}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-family:var(--disp);font-weight:600;font-size:clamp(24px,4vw,34px);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{font-size:14.5px;color:var(--ink2);margin:0 0 16px;max-width:76ch}
+  .lead b{color:var(--ink)}
+  .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+  @media(max-width:640px){.controls{grid-template-columns:1fr}}
+  .ctl label{font-family:var(--mono);font-size:11px;color:var(--ink2);display:flex;justify-content:space-between;margin-bottom:6px}
+  .ctl label b{color:var(--accent)}
+  .ctl input[type=range]{width:100%;accent-color:var(--accent)}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 0 14px}
+  @media(max-width:640px){.tiles{grid-template-columns:1fr 1fr}}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .tile .k{font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+  .tile .v{font-family:var(--disp);font-size:20px;font-weight:600;letter-spacing:-.01em}
+  .tile .v.up{color:var(--up)} .tile .v.gold{color:var(--gold)} .tile .v.warn{color:var(--down)}
+  .chartwrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 8px 6px;margin-bottom:14px}
+  canvas{width:100%;height:auto;display:block;cursor:crosshair}
+  #tip{position:absolute;pointer-events:none;background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11.5px;color:var(--ink);opacity:0;transition:opacity .08s;white-space:nowrap;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  #tip .d{color:var(--ink3)} #tip b{color:var(--accent)} #tip .g{color:var(--gold)} #tip .u{color:var(--up)} #tip .dn{color:var(--down)}
+  h2{font-family:var(--disp);font-weight:600;font-size:16px;margin:6px 0 8px}
+  .blotter{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .bhead,.brow{display:grid;grid-template-columns:1.3fr .9fr .7fr .7fr 1.1fr 1.2fr;gap:6px;padding:8px 14px;font-family:var(--mono);font-size:12px}
+  .bhead{color:var(--ink3);font-size:10px;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
+  .blist{max-height:340px;overflow-y:auto}
+  .brow{border-bottom:1px solid var(--line)} .brow:hover{background:var(--surface2)}
+  .brow .r{text-align:right} .long{color:var(--up)} .short{color:var(--down)} .pos{color:var(--up)} .neg{color:var(--down)}
+  .note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--ink2);margin:14px 0 0;line-height:1.5}
+  .note b{color:var(--ink)}
+  footer{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:22px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body>
+  <p class="eyebrow">experimental · target-0.5R edge · adaptive sizing · live withdrawals</p>
+  <h1>The Payout Machine</h1>
+  <p class="lead">The high‑win‑rate edge (97.6% win, bounded loss) compounding from <b>$2,000</b>, sized at your chosen risk with the ~500‑lot fill ceiling. Then it <b>pays you</b>: once the balance crosses your start line, it withdraws a slice every day — and because the slice is a % of balance, your daily paycheck <b>grows as the machine grows</b>. Drag the sliders. Hover the chart for any day. Scroll the blotter for every trade.</p>
+
+  <div class="controls">
+    <div class="ctl"><label>risk / trade <b id="vRisk">10%</b></label><input type="range" id="risk" min="2" max="20" step="1" value="10"></div>
+    <div class="ctl"><label>start paying at <b id="vStart">$25k</b></label><input type="range" id="start" min="10000" max="500000" step="5000" value="25000"></div>
+    <div class="ctl"><label>daily withdrawal <b id="vDaily">0.30%/day</b></label><input type="range" id="daily" min="0" max="200" step="5" value="30"></div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+  <div class="chartwrap"><canvas id="cv" width="1900" height="620"></canvas><div id="tip"></div></div>
+
+  <h2>Trade blotter · <span id="blabel"></span></h2>
+  <div class="blotter">
+    <div class="bhead"><div>date</div><div>pair</div><div>dir</div><div class="r">R</div><div class="r">trade P&L</div><div class="r">balance</div></div>
+    <div class="blist" id="blist"></div>
+  </div>
+
+  <p class="note"><b>How to drive it.</b> <b>risk/trade</b> sizes each salvo; <b>start paying at</b> is the balance where withdrawals switch on; <b>daily withdrawal</b> is the % of balance you pull every day. A % (not a fixed $) is the trick — it's tiny early so it barely dents growth, then scales into a real paycheck as the account swells. Push the daily % too high and you'll watch the withdrawals outrun the edge and flatten the curve — that's the machine's redline. <b>Research only, M15 model, not the live account.</b></p>
+  <footer>Kaiten · 回天 · payout simulation · target-0.5R edge · not financial advice. — NINJA</footer>
+<script src="edge-trades.js?v=1"></script>
+<script>
+  const E=window.EDGE, PV={'XAU/USD':10,'EUR/USD':10,'USD/JPY':6.9}, MAX_LOTS=500, START_BAL=2000, DAY=86400;
+  const co=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const M=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(1)+'k':'$'+Math.round(v);
+  const Mf=v=>'$'+Math.round(v).toLocaleString();
+  const dS=t=>{const d=new Date(t*1000);return d.toISOString().slice(0,10);};
+  const byDay={}; for(const tr of E.trades){ const d=Math.floor(tr.t/DAY)*DAY; (byDay[d]=byDay[d]||[]).push(tr); }
+  const day0=Math.floor(E.trades[0].t/DAY)*DAY, dayN=Math.floor(E.trades[E.trades.length-1].t/DAY)*DAY;
+
+  function sim(riskPct, wStart, wDaily){
+    let bal=START_BAL, peak=START_BAL, dd=0, cumW=0, active=false, lastDayW=0;
+    const daily=[], rows=[];
+    for(let d=day0; d<=dayN; d+=DAY){
+      const dts=[];
+      if(byDay[d]) for(const tr of byDay[d]){
+        const wantLots=bal*riskPct/(tr.stopP*PV[tr.sym]);
+        const useLots=Math.min(wantLots, MAX_LOTS);
+        const pnl=useLots*PV[tr.sym]*tr.stopP*tr.R;
+        bal+=pnl; if(bal<0)bal=0;
+        const row={t:tr.t, sym:tr.sym, dir:tr.dir, R:tr.R, pnl, bal}; dts.push(row); rows.push(row);
+      }
+      if(!active && bal>=wStart) active=true;
+      let dayW=0; if(active){ dayW=bal*wDaily; bal-=dayW; cumW+=dayW; lastDayW=dayW; }
+      if(bal>peak)peak=bal; const dp=peak>0?(peak-bal)/peak:0; if(dp>dd)dd=dp;
+      daily.push({t:d, b:bal, dd:-dp*100, cumW, dayW, trades:dts});
+    }
+    return {daily, rows, final:bal, cumW, maxDD:dd*100, lastDayW};
+  }
+
+  let S;
+  const cv=document.getElementById('cv'), ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  const PADL=96, PADR=26, PADT=18, PADB=40;
+  let geom;
+  function draw(){
+    const D=S.daily; ctx.clearRect(0,0,W,H);
+    const t0=D[0].t, t1=D[D.length-1].t;
+    const bmax=Math.max(...D.map(p=>p.b), S.cumW, START_BAL*4), bmin=START_BAL;
+    const X=t=>PADL+(t-t0)/(t1-t0)*(W-PADL-PADR);
+    const Y=b=>{b=Math.max(b,1);const l0=Math.log10(bmin),l1=Math.log10(bmax);return PADT+(1-(Math.log10(b)-l0)/(l1-l0))*(H-PADT-PADB);};
+    geom={t0,t1,X,Y,bmax};
+    const line=co('--line'),ink3=co('--ink3');
+    ctx.font='21px ui-monospace,monospace';ctx.textAlign='right';ctx.textBaseline='middle';
+    for(const tk of [2e3,1e4,1e5,1e6,1e7]){ if(tk>bmax*1.1)continue; const y=Y(tk); ctx.strokeStyle=line;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(PADL,y);ctx.lineTo(W-PADR,y);ctx.stroke(); ctx.fillStyle=ink3;ctx.fillText(M(tk),PADL-10,y); }
+    ctx.textAlign='center';ctx.textBaseline='top';
+    for(let yr=2023;yr<=2025;yr++){const tt=Date.UTC(yr,0,1)/1000;if(tt<t0||tt>t1)continue;const x=X(tt);ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(x,PADT);ctx.lineTo(x,H-PADB);ctx.stroke();ctx.fillStyle=ink3;ctx.fillText(yr,x,H-PADB+7);}
+    // cumulative withdrawn (gold, filled)
+    ctx.fillStyle='color-mix(in srgb,'+co('--gold')+' 16%,transparent)';
+    ctx.beginPath();ctx.moveTo(X(t0),Y(1)); for(const p of D) ctx.lineTo(X(p.t),Y(Math.max(p.cumW,1))); ctx.lineTo(X(t1),Y(1));ctx.closePath();ctx.fill();
+    ctx.strokeStyle=co('--gold');ctx.lineWidth=2;ctx.beginPath();D.forEach((p,i)=>{const x=X(p.t),y=Y(Math.max(p.cumW,1));i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+    // balance (teal)
+    ctx.strokeStyle=co('--accent');ctx.lineWidth=3.4;ctx.beginPath();D.forEach((p,i)=>{const x=X(p.t),y=Y(p.b);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+    // legend
+    ctx.textAlign='left';ctx.textBaseline='middle';ctx.font='19px ui-monospace,monospace';
+    ctx.fillStyle=co('--accent');ctx.fillText('● balance',PADL+8,PADT+10);
+    ctx.fillStyle=co('--gold');ctx.fillText('● withdrawn',PADL+128,PADT+10);
+  }
+  function crosshair(px){
+    draw(); const D=S.daily, {t0,t1,X,Y}=geom;
+    const frac=Math.max(0,Math.min(1,(px-PADL)/(W-PADL-PADR))); const tt=t0+frac*(t1-t0);
+    let idx=Math.round((tt-t0)/DAY); idx=Math.max(0,Math.min(D.length-1,idx)); const p=D[idx];
+    const x=X(p.t); ctx.strokeStyle=co('--ink3');ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,PADT);ctx.lineTo(x,H-PADB);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=co('--accent');ctx.beginPath();ctx.arc(x,Y(p.b),5,0,7);ctx.fill();
+    const tip=document.getElementById('tip'); const rect=cv.getBoundingClientRect(); const sc=rect.width/W;
+    let html=`<span class="d">${dS(p.t)}</span><br>bal <b>${Mf(p.b)}</b><br>withdrawn <span class="g">${Mf(p.cumW)}</span>`;
+    if(p.dayW>0) html+=`<br><span class="d">today's payout</span> <span class="g">${Mf(p.dayW)}</span>`;
+    if(p.trades.length){ const tr=p.trades[p.trades.length-1]; html+=`<br><span class="d">${tr.sym} <span class="${tr.dir>0?'u':'dn'}">${tr.dir>0?'LONG':'SHORT'}</span></span> <span class="${tr.pnl>=0?'u':'dn'}">${tr.pnl>=0?'+':''}${Mf(tr.pnl)}</span>`; }
+    tip.innerHTML=html; tip.style.opacity=1;
+    let lx=x*sc+14; if(lx>rect.width-150)lx=x*sc-150; tip.style.left=lx+'px'; tip.style.top=(Y(p.b)*sc-10)+'px';
+  }
+  cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();crosshair((e.clientX-r.left)/r.width*W);});
+  cv.addEventListener('mouseleave',()=>{draw();document.getElementById('tip').style.opacity=0;});
+
+  function render(){
+    const risk=+document.getElementById('risk').value/100, wStart=+document.getElementById('start').value, wDaily=+document.getElementById('daily').value/100/100;
+    document.getElementById('vRisk').textContent=(risk*100)+'%';
+    document.getElementById('vStart').textContent=M(wStart);
+    document.getElementById('vDaily').textContent=(wDaily*100).toFixed(2)+'%/day';
+    S=sim(risk, wStart, wDaily);
+    document.getElementById('tiles').innerHTML=[
+      ['final balance',M(S.final),'up',''],
+      ['total withdrawn (your pay)',M(S.cumW),'gold',''],
+      ['final daily payout',Mf(S.lastDayW),'gold',''],
+      ['max drawdown',S.maxDD.toFixed(1)+'%','warn',''],
+    ].map(([k,v,c])=>`<div class="tile"><div class="k">${k}</div><div class="v ${c}">${v}</div></div>`).join('');
+    // blotter (most recent first)
+    document.getElementById('blabel').textContent=E.n+' trades · '+E.win+'% win';
+    const rows=S.rows.slice().reverse();
+    document.getElementById('blist').innerHTML=rows.map(r=>`<div class="brow"><div>${dS(r.t)}</div><div>${r.sym}</div><div class="${r.dir>0?'long':'short'}">${r.dir>0?'LONG':'SHORT'}</div><div class="r ${r.R>0?'pos':'neg'}">${r.R>0?'+':''}${r.R.toFixed(2)}</div><div class="r ${r.pnl>=0?'pos':'neg'}">${r.pnl>=0?'+':''}${Mf(r.pnl)}</div><div class="r">${Mf(r.bal)}</div></div>`).join('');
+    draw();
+  }
+  for(const id of ['risk','start','daily']) document.getElementById(id).addEventListener('input',render);
+  render();
+</script>
+</body></html>
