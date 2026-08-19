@@ -35,9 +35,9 @@
 </style></head><body>
   <div class="head">
     <div>
-      <p class="eyebrow">Kaiten v1.0 live config · all 6 tweaks · majors H1 / gold H4 · backtest</p>
-      <h1>$2,000 → $36.8M</h1>
-      <p class="sub" id="sub">Ichimoku trend + Fade 1x9 short-term · discrete lots · 100-lot cap</p>
+      <p class="eyebrow">Kaiten live config · the fade money machine · 0.5R high-win target · backtest</p>
+      <h1>$2,000 → $43.7M</h1>
+      <p class="sub" id="sub">Fade 1×9 · 0.5R quick-profit target · discrete lots · real spreads</p>
     </div>
     <div class="toggle" id="scaleToggle">
       <button data-s="log" class="on">log</button>
@@ -58,7 +58,7 @@
     <p class="note" id="note"></p>
   </div>
 
-<script src="livestack-data.js?v=kaiten1"></script>
+<script src="livestack-data.js?v=fade05"></script>
 <script>
 (function(){
   const D = window.LIVESTACK, C = D.curve;
@@ -87,11 +87,11 @@
   document.getElementById('tiles').innerHTML = tiles.map(([k,v,c,sub])=>
     `<div class="tile"><p class="k">${k}</p><div class="v ${c}">${v}</div>${sub?`<div class="vsub">${sub}</div>`:''}</div>`).join('');
   document.getElementById('sub').textContent =
-    `${D.nFade.toLocaleString()} fade + ${D.nIchi.toLocaleString()} trend signals · ${D.from} → ${D.to} · discrete 0.01 lots, 100-lot cap`;
+    `${D.nFade.toLocaleString()} fade salvos · ${D.win}% win · ${D.from} → ${D.to} · discrete 0.01 lots, 1000-lot cap`;
   document.getElementById('note').innerHTML =
-    `Backtest on Dukascopy 1-min data, 2023–2025. Risk is 1%/unit of the <b>current</b> balance (fade = 9 units), so it compounds — ` +
-    `${D.capped.toLocaleString()} signals hit the 100-lot broker cap, which is what bounds the curve. Slippage/liquidity at eight-figure size not charged. ` +
-    `Log scale shows the compounding honestly; the drawdown panel is the real risk you'd sit through. Not the demo's realized P&L — a projection if the edge holds.`;
+    `Backtest on Dukascopy 1-min data, 2023–2025, of the <b>current live config</b>: the fade alone, taking a quick <b>0.5R</b> profit (${D.win}% win rate). ` +
+    `Risk is 1%/unit of the <b>current</b> balance (9 units = 9% per salvo), so it compounds — only ${D.capped.toLocaleString()} salvos hit the 1000-lot/unit broker cap, so the curve is barely bound. ` +
+    `M15 model; live enters on M1, so real fills may shave the edge (esp. gold, where a 0.5R target ≈ the spread). Log scale shows compounding honestly; the drawdown panel is the real risk. A projection if the edge holds live — not realized P&L.`;
 
   // ---- geometry ----
   const W=1000, EH=400, DH=130, PL=64, PR=64, PT=14, PB=22;
